@@ -4,86 +4,84 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Compensar · Visitas Operativas</title>
-<!-- Sin dependencias externas - fuentes del sistema -->
 <style>
 :root{
   --bg:#0d1117;--bg2:#161b22;--bg3:#1c2230;
   --border:#2a3348;--border2:#374161;
   --text:#e8edf5;--text2:#8b95a8;--text3:#5a6478;
-  --accent:#2563eb;--accent2:#3b82f6;--accent-glow:rgba(37,99,235,.18);
-  --green:#22c55e;--green-bg:rgba(34,197,94,.1);
-  --yellow:#f59e0b;--yellow-bg:rgba(245,158,11,.1);
-  --red:#ef4444;--red-bg:rgba(239,68,68,.1);
+  --accent:#2563eb;--accent2:#3b82f6;--glow:rgba(37,99,235,.18);
+  --green:#22c55e;--gbg:rgba(34,197,94,.1);
+  --yellow:#f59e0b;--ybg:rgba(245,158,11,.1);
+  --red:#ef4444;--rbg:rgba(239,68,68,.1);
   --orange:#f97316;--purple:#a855f7;
   --r:10px;--rs:6px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
-::-webkit-scrollbar{width:5px;height:5px}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px}
 
 /* HEADER */
-.hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:58px;position:sticky;top:0;z-index:100}
-.hdr-brand{display:flex;align-items:center;gap:12px}
-.hdr-logo{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:15px}
-.hdr-title{font-size:15px;font-weight:600;letter-spacing:-.2px}
-.hdr-sub{font-size:10px;color:var(--text3);font-family:'Courier New',Courier,monospace;text-transform:uppercase;letter-spacing:.5px}
-.sync-pill{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3);font-family:'Courier New',Courier,monospace;padding:4px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;cursor:pointer}
-.sync-pill:hover{border-color:var(--border2)}
-.dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
-.dot.off{background:var(--red)}
-.dot.wait{background:var(--yellow);animation:blink 1s infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 22px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100}
+.brand{display:flex;align-items:center;gap:11px}
+.logo{width:33px;height:33px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:14px}
+.htitle{font-size:15px;font-weight:600}
+.hsub{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.spill{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3);padding:4px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;cursor:pointer}
+.spill:hover{border-color:var(--border2)}
+.dot{width:6px;height:6px;border-radius:50%}
+.dot.ok{background:var(--green)}
+.dot.err{background:var(--red)}
+.dot.wait{background:var(--yellow);animation:bl 1s infinite}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.25}}
 
 /* LAYOUT */
-.lay{display:grid;grid-template-columns:210px 1fr;min-height:calc(100vh - 58px)}
-.side{background:var(--bg2);border-right:1px solid var(--border);padding:16px 10px;display:flex;flex-direction:column;gap:3px}
-.side-sec{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text3);padding:10px 10px 4px;margin-top:4px}
-.nav{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:var(--rs);cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:all .12s;border:1px solid transparent}
+.lay{display:grid;grid-template-columns:205px 1fr;min-height:calc(100vh - 56px)}
+.side{background:var(--bg2);border-right:1px solid var(--border);padding:14px 9px;display:flex;flex-direction:column;gap:3px;overflow-y:auto}
+.ssec{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text3);padding:9px 10px 3px;margin-top:4px}
+.nav{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--rs);cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:all .12s;border:1px solid transparent}
 .nav:hover{background:var(--bg3);color:var(--text)}
-.nav.on{background:var(--accent-glow);color:var(--accent2);border-color:rgba(37,99,235,.25)}
-.nav-ic{width:16px;text-align:center;font-size:14px}
-.nbadge{margin-left:auto;background:var(--accent);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;font-family:'Courier New',Courier,monospace}
+.nav.on{background:var(--glow);color:var(--accent2);border-color:rgba(37,99,235,.25)}
+.nic{width:16px;text-align:center;font-size:14px}
+.nb{margin-left:auto;background:var(--accent);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;font-family:monospace}
 
 /* MAIN */
-.main{padding:26px 30px;overflow-y:auto;max-height:calc(100vh - 58px)}
+.main{padding:24px 28px;overflow-y:auto;max-height:calc(100vh - 56px)}
 .pg{display:none}.pg.on{display:block}
-.pghdr{margin-bottom:22px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.pgtitle{font-size:21px;font-weight:700;letter-spacing:-.5px}
-.pgdesc{font-size:13px;color:var(--text2);margin-top:2px}
-.abar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pgh{margin-bottom:20px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.pgt{font-size:20px;font-weight:700;letter-spacing:-.4px}
+.pgd{font-size:13px;color:var(--text2);margin-top:2px}
+.ab{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
 
 /* BUTTONS */
-.btn{display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:var(--rs);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .13s;white-space:nowrap}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--rs);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .13s;white-space:nowrap}
 .bp{background:var(--accent);color:#fff}.bp:hover{background:var(--accent2);box-shadow:0 4px 14px rgba(37,99,235,.4);transform:translateY(-1px)}
 .bs{background:var(--bg3);color:var(--text);border-color:var(--border)}.bs:hover{background:var(--border)}
-.bg2{background:var(--green-bg);color:var(--green);border-color:rgba(34,197,94,.3)}.bg2:hover{background:rgba(34,197,94,.18)}
-.bw{background:var(--yellow-bg);color:var(--yellow);border-color:rgba(245,158,11,.3)}
-.sm{padding:5px 11px;font-size:12px}
+.bg{background:var(--gbg);color:var(--green);border-color:rgba(34,197,94,.3)}.bg:hover{background:rgba(34,197,94,.18)}
+.bw{background:var(--ybg);color:var(--yellow);border-color:rgba(245,158,11,.3)}
+.sm{padding:5px 10px;font-size:12px}
 
-/* CARDS */
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.4)}
-.ctitle{font-size:11px;font-weight:600;letter-spacing:.7px;text-transform:uppercase;color:var(--text3);margin-bottom:12px}
+/* CARD */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:17px;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.ct{font-size:11px;font-weight:600;letter-spacing:.7px;text-transform:uppercase;color:var(--text3);margin-bottom:11px}
 
 /* STATS */
-.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:13px;margin-bottom:22px}
-.sc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;position:relative;overflow:hidden;transition:border-color .2s}
-.sc:hover{border-color:var(--border2)}
+.sg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.sc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:15px 17px;position:relative;overflow:hidden}
 .sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
 .sc.bl::before{background:var(--accent)}.sc.gr::before{background:var(--green)}.sc.ye::before{background:var(--yellow)}.sc.re::before{background:var(--red)}.sc.pu::before{background:var(--purple)}.sc.or::before{background:var(--orange)}
-.slabel{font-size:10px;color:var(--text3);font-weight:500;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px}
-.sval{font-size:26px;font-weight:700;letter-spacing:-1px;font-family:'Courier New',Courier,monospace;line-height:1;margin-bottom:5px}
-.sc.bl .sval{color:var(--accent2)}.sc.gr .sval{color:var(--green)}.sc.ye .sval{color:var(--yellow)}.sc.re .sval{color:var(--red)}.sc.pu .sval{color:var(--purple)}.sc.or .sval{color:var(--orange)}
-.ssub{font-size:11px;color:var(--text3)}
-.pbar{background:var(--border);border-radius:10px;height:5px;overflow:hidden;margin-top:5px}
-.pfill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:10px;transition:width .6s ease}
+.sl{font-size:10px;color:var(--text3);font-weight:500;letter-spacing:.5px;text-transform:uppercase;margin-bottom:7px}
+.sv{font-size:25px;font-weight:700;letter-spacing:-1px;font-family:monospace;line-height:1;margin-bottom:5px}
+.sc.bl .sv{color:var(--accent2)}.sc.gr .sv{color:var(--green)}.sc.ye .sv{color:var(--yellow)}.sc.re .sv{color:var(--red)}.sc.pu .sv{color:var(--purple)}.sc.or .sv{color:var(--orange)}
+.ss{font-size:11px;color:var(--text3)}
+.pb{background:var(--border);border-radius:10px;height:5px;overflow:hidden;margin-top:5px}
+.pf{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:10px;transition:width .6s}
 
 /* TABLE */
-.twrap{overflow-x:auto;border-radius:var(--r);border:1px solid var(--border)}
+.tw{overflow-x:auto;border-radius:var(--r);border:1px solid var(--border)}
 table{width:100%;border-collapse:collapse;font-size:13px}
 thead{background:var(--bg3)}
-th{padding:10px 13px;text-align:left;font-size:10px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);white-space:nowrap}
-td{padding:11px 13px;border-bottom:1px solid var(--border);vertical-align:middle}
+th{padding:9px 12px;text-align:left;font-size:10px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tbody tr{cursor:pointer;transition:background .1s}
 tbody tr:hover td{background:var(--bg3)}
@@ -91,104 +89,108 @@ tbody tr:hover td{background:var(--bg3)}
 /* BADGES */
 .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
 .badge::before{content:'●';font-size:7px}
-.bg{background:var(--green-bg);color:var(--green);border:1px solid rgba(34,197,94,.2)}
-.by{background:var(--yellow-bg);color:var(--yellow);border:1px solid rgba(245,158,11,.2)}
-.br{background:var(--red-bg);color:var(--red);border:1px solid rgba(239,68,68,.2)}
-.bb{background:var(--accent-glow);color:var(--accent2);border:1px solid rgba(37,99,235,.2)}
+.bg2c{background:var(--gbg);color:var(--green);border:1px solid rgba(34,197,94,.2)}
+.byc{background:var(--ybg);color:var(--yellow);border:1px solid rgba(245,158,11,.2)}
+.brc{background:var(--rbg);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+.bbc{background:var(--glow);color:var(--accent2);border:1px solid rgba(37,99,235,.2)}
 
 /* MODAL */
-.moverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:1000;backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px}
-.moverlay.on{display:flex}
-.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:13px;width:100%;max-width:720px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.6);animation:mIn .18s ease}
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:1000;backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px}
+.mo.on{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:13px;width:100%;max-width:700px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.6);animation:mIn .18s ease}
 @keyframes mIn{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
-.mhdr{padding:18px 22px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg2);z-index:1}
-.mtitle{font-size:15px;font-weight:700}
-.mbody{padding:22px}
-.mfooter{padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;background:var(--bg2);position:sticky;bottom:0}
-.xbtn{background:none;border:none;color:var(--text3);font-size:19px;cursor:pointer;padding:2px 6px;border-radius:4px}
-.xbtn:hover{color:var(--text);background:var(--bg3)}
+.mh{padding:17px 21px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg2);z-index:1}
+.mt{font-size:15px;font-weight:700}
+.mb{padding:21px}
+.mf{padding:13px 21px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;background:var(--bg2);position:sticky;bottom:0}
+.xb{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:2px 6px;border-radius:4px}
+.xb:hover{color:var(--text);background:var(--bg3)}
 
 /* FORM */
-.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
 .fg{display:flex;flex-direction:column;gap:5px}
 .fg.full{grid-column:1/-1}
 label{font-size:10px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--text3)}
-input,select,textarea{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);padding:8px 11px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;transition:border-color .14s,box-shadow .14s;width:100%}
-input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
-textarea{resize:vertical;min-height:75px}
+input,select,textarea{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);padding:8px 11px;font-family:inherit;font-size:13px;transition:border-color .14s,box-shadow .14s;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--glow)}
+textarea{resize:vertical;min-height:72px}
 select option{background:var(--bg2)}
-.fauto{background:rgba(37,99,235,.06);border-color:rgba(37,99,235,.22);color:var(--text2)}
-.lauto::after{content:'AUTO';font-size:9px;background:var(--accent-glow);color:var(--accent2);padding:1px 5px;border-radius:3px;font-weight:700;letter-spacing:.5px;margin-left:6px}
+.fa{background:rgba(37,99,235,.06);border-color:rgba(37,99,235,.22);color:var(--text2)}
+.la::after{content:'AUTO';font-size:9px;background:var(--glow);color:var(--accent2);padding:1px 5px;border-radius:3px;font-weight:700;margin-left:5px}
 
 /* EVIDENCES */
-.evzone{border:2px dashed var(--border);border-radius:var(--r);padding:26px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg3)}
-.evzone:hover{border-color:var(--accent);background:var(--accent-glow)}
-.evlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:9px;margin-top:13px}
-.evitem{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:9px;position:relative}
-.evimg{width:100%;height:85px;object-fit:cover;border-radius:4px;display:block}
-.evpdf{width:100%;height:85px;display:flex;align-items:center;justify-content:center;font-size:28px;background:var(--bg);border-radius:4px}
-.evname{font-size:11px;color:var(--text2);word-break:break-all;margin-top:5px}
-.evdate{font-size:10px;color:var(--text3);font-family:'Courier New',Courier,monospace;margin-top:2px}
-.evdel{position:absolute;top:4px;right:4px;background:var(--red-bg);border:none;color:var(--red);border-radius:3px;padding:2px 5px;font-size:10px;cursor:pointer;display:none}
-.evitem:hover .evdel{display:block}
+.ez{border:2px dashed var(--border);border-radius:var(--r);padding:24px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg3)}
+.ez:hover{border-color:var(--accent);background:var(--glow)}
+.el{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:12px}
+.ei2{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:8px;position:relative}
+.eimg{width:100%;height:80px;object-fit:cover;border-radius:4px;display:block}
+.epdf{width:100%;height:80px;display:flex;align-items:center;justify-content:center;font-size:26px;background:var(--bg);border-radius:4px}
+.en{font-size:11px;color:var(--text2);word-break:break-all;margin-top:5px}
+.ed{font-size:10px;color:var(--text3);font-family:monospace;margin-top:2px}
+.edel{position:absolute;top:3px;right:3px;background:var(--rbg);border:none;color:var(--red);border-radius:3px;padding:1px 5px;font-size:10px;cursor:pointer;display:none}
+.ei2:hover .edel{display:block}
 
-/* SCHEDULE CARDS */
-.sgrid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:11px}
-.scard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px;cursor:pointer;transition:all .16s;position:relative}
-.scard:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 22px rgba(37,99,235,.15)}
-.scard.today{border-color:var(--green);background:var(--green-bg)}
-.scard.today::after{content:'HOY';position:absolute;top:8px;right:8px;background:var(--green);color:#000;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.5px}
+/* SCHEDULE */
+.sg3{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.scard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:13px;cursor:pointer;transition:all .15s;position:relative}
+.scard:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 20px rgba(37,99,235,.15)}
+.scard.today{border-color:var(--green);background:var(--gbg)}
+.scard.today::after{content:'HOY';position:absolute;top:7px;right:7px;background:var(--green);color:#000;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px}
 .scard.past{opacity:.5}
-.sdate{font-family:'Courier New',Courier,monospace;font-size:11px;color:var(--text3);margin-bottom:5px}
-.sday{font-size:15px;font-weight:700;letter-spacing:-.4px;margin-bottom:2px}
-.ssede{font-size:12px;color:var(--text2);margin-bottom:9px}
+.sdp{font-family:monospace;font-size:11px;color:var(--text3);margin-bottom:4px}
+.sdn{font-size:15px;font-weight:700;letter-spacing:-.3px;margin-bottom:2px}
+.sds{font-size:12px;color:var(--text2);margin-bottom:8px}
 
 /* MONTH FILTER */
-.mfilt{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
-.mbtn{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);font-size:12px;cursor:pointer;transition:all .13s;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-weight:500}
-.mbtn:hover{border-color:var(--border2);color:var(--text)}
-.mbtn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
-.sfilt{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
-.schip{padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:12px;cursor:pointer;transition:all .13s;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
-.schip.on{background:var(--accent-glow);color:var(--accent2);border-color:rgba(37,99,235,.3)}
+.mf2{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:16px}
+.mb2{padding:4px 11px;border-radius:20px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);font-size:12px;cursor:pointer;transition:all .12s;font-family:inherit;font-weight:500}
+.mb2:hover{border-color:var(--border2);color:var(--text)}
+.mb2.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.sf2{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:13px}
+.sch{padding:3px 11px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:12px;cursor:pointer;transition:all .12s;font-family:inherit}
+.sch.on{background:var(--glow);color:var(--accent2);border-color:rgba(37,99,235,.3)}
 
 /* TOAST */
-#toasts{position:fixed;bottom:22px;right:22px;z-index:9999;display:flex;flex-direction:column;gap:7px}
-.toast{background:var(--bg2);border:1px solid var(--border2);border-radius:9px;padding:11px 15px;font-size:13px;min-width:240px;max-width:340px;box-shadow:0 8px 24px rgba(0,0,0,.4);display:flex;align-items:center;gap:9px;animation:tIn .25s ease}
-@keyframes tIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+#toasts{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:6px}
+.toast{background:var(--bg2);border:1px solid var(--border2);border-radius:9px;padding:10px 14px;font-size:13px;min-width:230px;max-width:320px;box-shadow:0 8px 24px rgba(0,0,0,.4);display:flex;align-items:center;gap:8px;animation:tIn .22s ease}
+@keyframes tIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
 
 /* EMPTY */
-.empty{text-align:center;padding:44px 16px;color:var(--text3)}
-.ei{font-size:36px;margin-bottom:10px}
-.et{font-size:14px;font-weight:600;color:var(--text2);margin-bottom:5px}
+.empty{text-align:center;padding:40px 14px;color:var(--text3)}
+.ei{font-size:34px;margin-bottom:8px}
+.et{font-size:14px;font-weight:600;color:var(--text2);margin-bottom:4px}
 .es{font-size:12px}
 
-/* SETUP MODAL */
-.setup-step{display:none}.setup-step.on{display:block}
-.step-num{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;margin-right:10px}
-.code-block{background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);padding:14px;font-family:'Courier New',Courier,monospace;font-size:12px;color:var(--accent2);white-space:pre-wrap;word-break:break-all;margin:10px 0;line-height:1.6}
-.copy-btn{font-size:11px;padding:3px 8px;margin-top:4px}
-.tip{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:var(--rs);padding:10px 13px;font-size:12px;color:var(--yellow);margin:10px 0}
-.ok-check{color:var(--green);font-size:13px;font-weight:600}
-.twocol{display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start}
-@media(max-width:900px){.twocol{grid-template-columns:1fr}.lay{grid-template-columns:1fr}.side{display:none}}
+/* CODE BLOCK */
+.codeblock{background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);padding:13px;font-family:monospace;font-size:12px;color:var(--accent2);white-space:pre-wrap;word-break:break-all;margin:9px 0;line-height:1.6;max-height:220px;overflow-y:auto}
+.tip{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:var(--rs);padding:9px 12px;font-size:12px;color:var(--yellow);margin:9px 0}
+.oktext{color:var(--green);font-size:13px;font-weight:600}
+.twocol{display:grid;grid-template-columns:1fr 300px;gap:17px;align-items:start}
+
+/* SETUP STEPS */
+.stepn{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;margin-right:8px;flex-shrink:0}
+.steprow{display:flex;align-items:flex-start;gap:0;margin-bottom:18px}
+.stepcont{flex:1}
+.stepttl{font-size:14px;font-weight:600;margin-bottom:7px;display:flex;align-items:center}
+
+@media(max-width:860px){.lay{grid-template-columns:1fr}.side{display:none}.twocol{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 
 <!-- HEADER -->
 <header class="hdr">
-  <div class="hdr-brand">
-    <div class="hdr-logo">CO</div>
+  <div class="brand">
+    <div class="logo">CO</div>
     <div>
-      <div class="hdr-title">Compensar · Visitas Operativas</div>
-      <div class="hdr-sub">Cronograma 2025</div>
+      <div class="htitle">Compensar · Visitas Operativas</div>
+      <div class="hsub">Cronograma 2025</div>
     </div>
   </div>
   <div style="display:flex;gap:8px;align-items:center">
-    <div class="sync-pill" onclick="doSync()" id="syncPill">
-      <div class="dot wait" id="syncDot"></div>
-      <span id="syncTxt">Inicializando...</span>
+    <div class="spill" onclick="doSync()" id="spill">
+      <div class="dot wait" id="sdot"></div>
+      <span id="stxt">Inicializando...</span>
     </div>
     <button class="btn bs sm" onclick="doSync()">⟳ Sync</button>
     <button class="btn bs sm" onclick="showPg('config')">⚙</button>
@@ -198,258 +200,259 @@ select option{background:var(--bg2)}
 <div class="lay">
 <!-- SIDEBAR -->
 <nav class="side">
-  <div class="nav on" id="nav-dashboard" onclick="showPg('dashboard')"><span class="nav-ic">◉</span>Dashboard</div>
-  <div class="nav" id="nav-cronograma" onclick="showPg('cronograma')"><span class="nav-ic">📅</span>Cronograma<span class="nbadge" id="nb-cron">0</span></div>
-  <div class="nav" id="nav-auditoria" onclick="showPg('auditoria')"><span class="nav-ic">📋</span>Auditoría del Día</div>
-  <div class="nav" id="nav-registros" onclick="showPg('registros')"><span class="nav-ic">🗂</span>Registros<span class="nbadge" id="nb-reg">0</span></div>
-  <div class="nav" id="nav-evidencias" onclick="showPg('evidencias')"><span class="nav-ic">📎</span>Evidencias</div>
-  <div class="side-sec">Sedes</div>
-  <div class="nav" onclick="filterBySede('Calle 26')"><span class="nav-ic">🔵</span>Calle 26</div>
-  <div class="nav" onclick="filterBySede('Avenida 68')"><span class="nav-ic">🟢</span>Avenida 68</div>
-  <div class="nav" onclick="filterBySede('Consorcio')"><span class="nav-ic">🟡</span>Consorcio</div>
-  <div class="nav" onclick="filterBySede('Calle 94')"><span class="nav-ic">🟠</span>Calle 94</div>
-  <div class="side-sec">Herramientas</div>
-  <div class="nav" onclick="exportExcel()"><span class="nav-ic">📊</span>Exportar Excel</div>
-  <div class="nav" onclick="genPDF()"><span class="nav-ic">📄</span>Generar PDF</div>
-  <div class="nav" id="nav-config" onclick="showPg('config')"><span class="nav-ic">⚙</span>Configuración</div>
+  <div class="nav on" id="nav-dashboard" onclick="showPg('dashboard')"><span class="nic">◉</span>Dashboard</div>
+  <div class="nav" id="nav-cronograma" onclick="showPg('cronograma')"><span class="nic">📅</span>Cronograma<span class="nb" id="nb-c">0</span></div>
+  <div class="nav" id="nav-auditoria" onclick="showPg('auditoria')"><span class="nic">📋</span>Auditoría del Día</div>
+  <div class="nav" id="nav-registros" onclick="showPg('registros')"><span class="nic">🗂</span>Registros<span class="nb" id="nb-r">0</span></div>
+  <div class="nav" id="nav-evidencias" onclick="showPg('evidencias')"><span class="nic">📎</span>Evidencias</div>
+  <div class="ssec">Sedes</div>
+  <div class="nav" onclick="fBySede('Calle 26')"><span class="nic">🔵</span>Calle 26</div>
+  <div class="nav" onclick="fBySede('Avenida 68')"><span class="nic">🟢</span>Avenida 68</div>
+  <div class="nav" onclick="fBySede('Consorcio')"><span class="nic">🟡</span>Consorcio</div>
+  <div class="nav" onclick="fBySede('Calle 94')"><span class="nic">🟠</span>Calle 94</div>
+  <div class="ssec">Herramientas</div>
+  <div class="nav" onclick="exportCSV()"><span class="nic">📊</span>Exportar Excel</div>
+  <div class="nav" onclick="genPDF()"><span class="nic">📄</span>Generar PDF</div>
+  <div class="nav" id="nav-config" onclick="showPg('config')"><span class="nic">⚙</span>Configuración</div>
 </nav>
 
 <main class="main">
 
-<!-- ═══ DASHBOARD ═══ -->
+<!-- DASHBOARD -->
 <section class="pg on" id="pg-dashboard">
-  <div class="pghdr">
-    <div><div class="pgtitle">Dashboard</div><div class="pgdesc">Resumen de visitas operativas 2025</div></div>
-    <div class="abar">
+  <div class="pgh">
+    <div><div class="pgt">Dashboard</div><div class="pgd">Resumen de visitas operativas 2025</div></div>
+    <div class="ab">
       <button class="btn bp" onclick="genSchedule()">⚡ Generar Cronograma</button>
-      <button class="btn bg2" onclick="showPg('auditoria')">📋 Auditoría Hoy</button>
+      <button class="btn bg" onclick="showPg('auditoria')">📋 Auditoría Hoy</button>
     </div>
   </div>
-  <div class="sgrid">
-    <div class="sc bl"><div class="slabel">Total</div><div class="sval" id="s-tot">0</div><div class="ssub">May–Dic 2025</div></div>
-    <div class="sc gr"><div class="slabel">Realizadas</div><div class="sval" id="s-done">0</div><div class="ssub" id="s-dpct">0%</div></div>
-    <div class="sc ye"><div class="slabel">Pendientes</div><div class="sval" id="s-pend">0</div><div class="ssub">Por realizar</div></div>
-    <div class="sc re"><div class="slabel">Reprogramadas</div><div class="sval" id="s-rep">0</div><div class="ssub">Reagendadas</div></div>
-    <div class="sc pu"><div class="slabel">Cumplimiento</div><div class="sval" id="s-pct">0%</div><div class="pbar"><div class="pfill" id="s-bar" style="width:0%"></div></div></div>
-    <div class="sc or"><div class="slabel">Próxima visita</div><div class="sval" id="s-next" style="font-size:15px;padding-top:3px">—</div><div class="ssub" id="s-nsede">—</div></div>
+  <div class="sg">
+    <div class="sc bl"><div class="sl">Total</div><div class="sv" id="s-tot">0</div><div class="ss">May–Dic 2025</div></div>
+    <div class="sc gr"><div class="sl">Realizadas</div><div class="sv" id="s-done">0</div><div class="ss" id="s-dp">0%</div></div>
+    <div class="sc ye"><div class="sl">Pendientes</div><div class="sv" id="s-pend">0</div><div class="ss">Por realizar</div></div>
+    <div class="sc re"><div class="sl">Reprogramadas</div><div class="sv" id="s-rep">0</div><div class="ss">Reagendadas</div></div>
+    <div class="sc pu"><div class="sl">Cumplimiento</div><div class="sv" id="s-pct">0%</div><div class="pb"><div class="pf" id="s-bar" style="width:0%"></div></div></div>
+    <div class="sc or"><div class="sl">Próxima Visita</div><div class="sv" id="s-nxt" style="font-size:14px;padding-top:4px">—</div><div class="ss" id="s-ns">—</div></div>
   </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px">
-    <div class="card"><div class="ctitle">📍 Hallazgos por Sede</div><div id="hall-chart"><div class="empty"><div class="ei">📊</div><div class="es">Sin datos</div></div></div></div>
-    <div class="card"><div class="ctitle">📅 Próximas Visitas</div><div id="upcoming"><div class="empty"><div class="ei">📅</div><div class="es">Genere el cronograma</div></div></div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:17px;margin-bottom:18px">
+    <div class="card"><div class="ct">📍 Hallazgos por Sede</div><div id="hchart"><div class="empty"><div class="ei">📊</div><div class="es">Sin datos</div></div></div></div>
+    <div class="card"><div class="ct">📅 Próximas Visitas</div><div id="upcoming"><div class="empty"><div class="ei">📅</div><div class="es">Genere el cronograma</div></div></div></div>
   </div>
-  <div class="card"><div class="ctitle">🔄 Actividad Reciente</div><div id="activity"><div class="empty"><div class="ei">🕐</div><div class="es">Sin actividad</div></div></div></div>
+  <div class="card"><div class="ct">🔄 Actividad Reciente</div><div id="activity"><div class="empty"><div class="ei">🕐</div><div class="es">Sin actividad</div></div></div></div>
 </section>
 
-<!-- ═══ CRONOGRAMA ═══ -->
+<!-- CRONOGRAMA -->
 <section class="pg" id="pg-cronograma">
-  <div class="pghdr">
-    <div><div class="pgtitle">Cronograma de Visitas</div><div class="pgdesc">Mayo – Diciembre 2025</div></div>
-    <div class="abar">
+  <div class="pgh">
+    <div><div class="pgt">Cronograma</div><div class="pgd">Mayo – Diciembre 2025</div></div>
+    <div class="ab">
       <button class="btn bp" onclick="genSchedule()">⚡ Generar/Regenerar</button>
-      <button class="btn bs" onclick="exportExcel()">📊 Excel</button>
+      <button class="btn bs" onclick="exportCSV()">📊 Exportar</button>
     </div>
   </div>
-  <div class="mfilt" id="mfilt"></div>
-  <div class="sfilt">
-    <button class="schip on" data-sede="all" onclick="filSede(this,'all')">Todas</button>
-    <button class="schip" data-sede="Calle 26" onclick="filSede(this,'Calle 26')">Calle 26</button>
-    <button class="schip" data-sede="Avenida 68" onclick="filSede(this,'Avenida 68')">Avenida 68</button>
-    <button class="schip" data-sede="Consorcio" onclick="filSede(this,'Consorcio')">Consorcio</button>
-    <button class="schip" data-sede="Calle 94" onclick="filSede(this,'Calle 94')">Calle 94</button>
+  <div class="mf2" id="mfilt"></div>
+  <div class="sf2">
+    <button class="sch on" data-s="all" onclick="fSede(this,'all')">Todas</button>
+    <button class="sch" data-s="Calle 26" onclick="fSede(this,'Calle 26')">Calle 26</button>
+    <button class="sch" data-s="Avenida 68" onclick="fSede(this,'Avenida 68')">Avenida 68</button>
+    <button class="sch" data-s="Consorcio" onclick="fSede(this,'Consorcio')">Consorcio</button>
+    <button class="sch" data-s="Calle 94" onclick="fSede(this,'Calle 94')">Calle 94</button>
   </div>
-  <div id="schedGrid" class="sgrid2"><div class="empty" style="grid-column:1/-1"><div class="ei">📅</div><div class="et">Sin cronograma</div><div class="es">Haga clic en "Generar Cronograma"</div></div></div>
+  <div id="sgrid" class="sg3"><div class="empty" style="grid-column:1/-1"><div class="ei">📅</div><div class="et">Sin cronograma</div><div class="es">Haga clic en "Generar Cronograma"</div></div></div>
 </section>
 
-<!-- ═══ AUDITORÍA ═══ -->
+<!-- AUDITORÍA -->
 <section class="pg" id="pg-auditoria">
-  <div class="pghdr">
-    <div><div class="pgtitle">Auditoría del Día</div><div class="pgdesc" id="aud-fecha">Cargando...</div></div>
-    <div class="abar">
-      <button class="btn bs" onclick="loadTodayAudit()">🔄 Recargar</button>
+  <div class="pgh">
+    <div><div class="pgt">Auditoría del Día</div><div class="pgd" id="af">Cargando...</div></div>
+    <div class="ab">
+      <button class="btn bs" onclick="loadToday()">🔄 Recargar Sheets</button>
       <button class="btn bp" onclick="saveAudit()">💾 Guardar</button>
     </div>
   </div>
   <div class="twocol">
     <div>
-      <div class="card" style="margin-bottom:18px">
-        <div class="ctitle">📝 Datos de la Visita</div>
-        <div class="fgrid">
-          <div class="fg"><label>Fecha Auditoría</label><input type="date" id="f-fecha" class="fauto" readonly></div>
-          <div class="fg"><label>Sede</label><select id="f-sede" onchange="loadTodayAudit()"><option value="">Seleccionar...</option><option>Calle 26</option><option>Avenida 68</option><option>Consorcio</option><option>Calle 94</option></select></div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="ct">📝 Datos de la Visita</div>
+        <div class="fg2">
+          <div class="fg"><label>Fecha Auditoría</label><input type="date" id="f-fecha" class="fa" readonly></div>
+          <div class="fg"><label>Sede</label><select id="f-sede" onchange="loadToday()"><option value="">Seleccionar...</option><option>Calle 26</option><option>Avenida 68</option><option>Consorcio</option><option>Calle 94</option></select></div>
           <div class="fg"><label>Hora Llegada</label><input type="time" id="f-llegada"></div>
           <div class="fg"><label>Hora Salida</label><input type="time" id="f-salida"></div>
           <div class="fg"><label>Responsable</label><input type="text" id="f-resp" placeholder="Nombre del auditor"></div>
           <div class="fg"><label>Estado</label><select id="f-estado"><option value="Pendiente">⏳ Pendiente</option><option value="Realizada">✅ Realizada</option><option value="Reprogramada">🔄 Reprogramada</option></select></div>
-          <div class="fg full"><label class="lauto">Observaciones</label><textarea id="f-obs" class="fauto" placeholder="Cargado automáticamente desde Google Sheets..."></textarea></div>
-          <div class="fg full"><label class="lauto">Hallazgos</label><textarea id="f-hall" class="fauto" placeholder="Cargado automáticamente desde Google Sheets..."></textarea></div>
-          <div class="fg"><label class="lauto">Resultado Auditoría</label><input type="text" id="f-res" class="fauto" placeholder="Desde Sheets..."></div>
-          <div class="fg"><label class="lauto">Comentarios</label><input type="text" id="f-com" class="fauto" placeholder="Desde Sheets..."></div>
+          <!-- Campos automáticos desde Sheets -->
+          <div class="fg full"><label class="la">Nombre Auditado (Sheets)</label><input type="text" id="f-nombre" class="fa" placeholder="Desde Google Sheets..."></div>
+          <div class="fg"><label class="la">Hora Llegada Recurso (Sheets)</label><input type="text" id="f-hrecurso" class="fa" placeholder="Desde Sheets..."></div>
+          <div class="fg"><label class="la">Presentación Personal (Sheets)</label><input type="text" id="f-pres" class="fa" placeholder="Desde Sheets..."></div>
+          <div class="fg"><label class="la">Calidad Atención (Sheets)</label><input type="text" id="f-calidad" class="fa" placeholder="Desde Sheets..."></div>
+          <div class="fg full"><label class="la">Observaciones Atención (Sheets)</label><textarea id="f-obs" class="fa" placeholder="Desde Sheets..."></textarea></div>
+          <div class="fg full"><label class="la">Documentos Pendientes (Sheets)</label><textarea id="f-docs" class="fa" placeholder="Desde Sheets..."></textarea></div>
+          <div class="fg"><label class="la">Video Apertura Buzones (Sheets)</label><input type="text" id="f-video" class="fa" placeholder="Desde Sheets..."></div>
+          <div class="fg"><label class="la">Cédula Auditado (Sheets)</label><input type="text" id="f-cedula" class="fa" placeholder="Desde Sheets..."></div>
         </div>
       </div>
       <div class="card">
-        <div class="ctitle">📎 Evidencias</div>
-        <div class="evzone" onclick="document.getElementById('fi').click()">
-          <div style="font-size:30px;margin-bottom:7px">📁</div>
-          <div style="font-size:13px;color:var(--text2)">Arrastre archivos o haga clic</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:4px">Fotos, PDF, capturas · Máx 10 MB</div>
+        <div class="ct">📎 Evidencias</div>
+        <div class="ez" onclick="document.getElementById('fi').click()">
+          <div style="font-size:28px;margin-bottom:6px">📁</div>
+          <div style="font-size:13px;color:var(--text2)">Arrastre archivos o haga clic para cargar</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">Fotos, PDF, capturas · Máx 10 MB</div>
         </div>
         <input type="file" id="fi" multiple accept="image/*,.pdf" style="display:none" onchange="handleFiles(event)">
-        <div class="evlist" id="evList"></div>
+        <div class="el" id="evList"></div>
       </div>
     </div>
     <div>
-      <div class="card" style="margin-bottom:13px"><div class="ctitle">📊 Estado</div><div id="aud-status"><div style="font-size:13px;color:var(--text2)">Seleccione o cargue la auditoría.</div></div></div>
-      <div class="card"><div class="ctitle">📅 Historial Sede</div><div id="sede-hist" style="font-size:13px;color:var(--text2)">Seleccione una sede.</div></div>
+      <div class="card" style="margin-bottom:12px"><div class="ct">📊 Estado del Día</div><div id="astatus"><div style="font-size:13px;color:var(--text2)">Cargando...</div></div></div>
+      <div class="card"><div class="ct">📅 Historial Sede</div><div id="shist" style="font-size:13px;color:var(--text2)">Seleccione una sede.</div></div>
     </div>
   </div>
 </section>
 
-<!-- ═══ REGISTROS ═══ -->
+<!-- REGISTROS -->
 <section class="pg" id="pg-registros">
-  <div class="pghdr">
-    <div><div class="pgtitle">Registros</div><div class="pgdesc">Todas las visitas</div></div>
-    <div class="abar">
-      <input type="text" id="srch" placeholder="Buscar..." style="width:190px" oninput="filterTable()">
-      <button class="btn bs sm" onclick="exportExcel()">📊 Excel</button>
+  <div class="pgh">
+    <div><div class="pgt">Registros</div><div class="pgd">Todas las visitas</div></div>
+    <div class="ab">
+      <input type="text" id="srch" placeholder="Buscar..." style="width:180px" oninput="filterTable()">
+      <button class="btn bs sm" onclick="exportCSV()">📊 CSV/Excel</button>
       <button class="btn bs sm" onclick="genPDF()">📄 PDF</button>
     </div>
   </div>
-  <div class="twrap">
-    <table><thead><tr><th>Fecha</th><th>Día</th><th>Sede</th><th>Responsable</th><th>Estado</th><th>Hallazgos</th><th>Evidencias</th><th>Obs.</th><th></th></tr></thead>
-    <tbody id="tbody"><tr><td colspan="9"><div class="empty"><div class="ei">🗂</div><div class="es">Sin registros. Genere el cronograma primero.</div></div></td></tr></tbody></table>
+  <div class="tw">
+    <table><thead><tr><th>Fecha</th><th>Día</th><th>Sede</th><th>Auditado</th><th>Responsable</th><th>Estado</th><th>Calidad</th><th>Observaciones</th><th>Evid.</th><th></th></tr></thead>
+    <tbody id="tbody"><tr><td colspan="10"><div class="empty"><div class="ei">🗂</div><div class="es">Sin registros. Genere el cronograma.</div></div></td></tr></tbody></table>
   </div>
 </section>
 
-<!-- ═══ EVIDENCIAS ═══ -->
+<!-- EVIDENCIAS -->
 <section class="pg" id="pg-evidencias">
-  <div class="pghdr"><div><div class="pgtitle">Evidencias</div><div class="pgdesc">Archivos adjuntos por visita</div></div></div>
+  <div class="pgh"><div><div class="pgt">Evidencias</div><div class="pgd">Archivos por visita</div></div></div>
   <div id="allEv"><div class="empty"><div class="ei">📎</div><div class="et">Sin evidencias</div><div class="es">Cargue desde Auditoría del Día</div></div></div>
 </section>
 
-<!-- ═══ CONFIG ═══ -->
+<!-- CONFIG -->
 <section class="pg" id="pg-config">
-  <div class="pghdr"><div><div class="pgtitle">Configuración</div><div class="pgdesc">Conexión Google Sheets</div></div></div>
+  <div class="pgh"><div><div class="pgt">Configuración</div><div class="pgd">Conexión con Google Sheets</div></div></div>
 
-  <!-- SETUP WIZARD -->
-  <div class="card" style="margin-bottom:18px">
-    <div class="ctitle">🔗 Configuración de Conexión</div>
+  <!-- PASO A PASO -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="ct">🔗 Conectar con Google Sheets — Guía Paso a Paso</div>
+    <div class="tip">⚠️ Google bloquea conexiones directas desde HTML (CORS). La solución es publicar un pequeño script en Google Apps Script. Solo se hace <strong>una vez</strong>.</div>
 
-    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
-      <button class="btn sm" id="tab-gas" onclick="showTab('gas')" style="background:var(--accent);color:#fff;border-color:var(--accent)">Opción 1: Apps Script (Recomendado)</button>
-      <button class="btn bs sm" id="tab-api" onclick="showTab('api')">Opción 2: API Key</button>
-      <button class="btn bs sm" id="tab-manual" onclick="showTab('manual')">Opción 3: Manual/CSV</button>
+    <div class="steprow">
+      <div class="stepttl"><span class="stepn">1</span>Abrir el Google Sheet de Compensar</div>
+    </div>
+    <div style="margin-left:34px;margin-bottom:18px">
+      <button class="btn bs sm" onclick="window.open('https://docs.google.com/spreadsheets/d/1YwaTve0UEvlsM8Zy8xYn5UwwqOAfprmPM7orGIj_rYw/edit?gid=992195120','_blank')">🔗 Abrir Sheet de Compensar</button>
     </div>
 
-    <!-- TAB: GAS -->
-    <div id="tab-gas-content">
-      <div class="tip">⭐ Este método funciona desde archivo local sin problemas de CORS. Solo hay que hacer el setup una vez.</div>
+    <div class="steprow">
+      <div class="stepttl"><span class="stepn">2</span>Ir a Extensiones → Apps Script</div>
+    </div>
+    <div style="margin-left:34px;margin-bottom:18px;font-size:13px;color:var(--text2)">
+      En el menú superior del Sheet: <strong style="color:var(--text)">Extensiones → Apps Script</strong>
+    </div>
 
-      <div style="margin-bottom:16px">
-        <div style="font-size:14px;font-weight:600;margin-bottom:10px"><span class="step-num">1</span>Abrir el Google Sheet</div>
-        <div style="font-size:13px;color:var(--text2);margin-bottom:8px">Vaya al Sheet de Compensar y en el menú superior haga clic en <strong style="color:var(--text)">Extensiones → Apps Script</strong></div>
-        <button class="btn bs sm" onclick="window.open('https://docs.google.com/spreadsheets/d/1YwaTve0UEvlsM8Zy8xYn5UwwqOAfprmPM7orGIj_rYw/edit','_blank')">🔗 Abrir Google Sheet</button>
-      </div>
+    <div class="steprow">
+      <div class="stepttl"><span class="stepn">3</span>Borrar todo y pegar este código</div>
+    </div>
+    <div style="margin-left:34px;margin-bottom:18px">
+      <div class="codeblock" id="gascode">const SHEET_ID = '1YwaTve0UEvlsM8Zy8xYn5UwwqOAfprmPM7orGIj_rYw';
+const GID      = '992195120';
 
-      <div style="margin-bottom:16px">
-        <div style="font-size:14px;font-weight:600;margin-bottom:10px"><span class="step-num">2</span>Pegar este código en Apps Script</div>
-        <div style="font-size:13px;color:var(--text2);margin-bottom:6px">Borre todo el código existente y pegue esto:</div>
-        <div class="code-block" id="gasCode">function doGet(e) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheets()[0];
-  var data = sheet.getDataRange().getValues();
-  var headers = data[0].map(function(h){ return String(h).toLowerCase().trim().replace(/\s+/g,'_'); });
-  var rows = [];
-  for(var i=1;i<data.length;i++){
-    var row = {};
-    for(var j=0;j<headers.length;j++){ row[headers[j]] = data[i][j]; }
-    rows.push(row);
+function doGet(e) {
+  try {
+    var ss    = SpreadsheetApp.openById(SHEET_ID);
+    var sheet = getSheetByGid(ss, GID);
+    var data  = sheet.getDataRange().getValues();
+
+    // Normalizar cabeceras
+    var headers = data[0].map(function(h) {
+      return String(h).trim()
+        .toLowerCase()
+        .replace(/\s+/g, '_')
+        .replace(/[áàä]/g,'a').replace(/[éèë]/g,'e')
+        .replace(/[íìï]/g,'i').replace(/[óòö]/g,'o')
+        .replace(/[úùü]/g,'u').replace(/ñ/g,'n')
+        .replace(/[^a-z0-9_]/g,'');
+    });
+
+    var rows = [];
+    for (var i = 1; i < data.length; i++) {
+      var row = {};
+      for (var j = 0; j < headers.length; j++) {
+        var val = data[i][j];
+        if (val instanceof Date) {
+          val = Utilities.formatDate(val, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+        }
+        row[headers[j]] = val !== undefined && val !== null ? String(val) : '';
+      }
+      if (Object.values(row).some(function(v){ return v !== ''; })) {
+        rows.push(row);
+      }
+    }
+
+    var result = ContentService.createTextOutput(
+      JSON.stringify({ ok: true, rows: rows, headers: headers, total: rows.length })
+    );
+    result.setMimeType(ContentService.MimeType.JSON);
+    return result;
+
+  } catch(err) {
+    return ContentService.createTextOutput(
+      JSON.stringify({ ok: false, error: err.message })
+    ).setMimeType(ContentService.MimeType.JSON);
   }
-  var output = ContentService.createTextOutput(JSON.stringify({ok:true,rows:rows,headers:headers,total:rows.length}));
-  output.setMimeType(ContentService.MimeType.JSON);
-  return output;
+}
+
+function getSheetByGid(ss, gid) {
+  var sheets = ss.getSheets();
+  for (var i = 0; i < sheets.length; i++) {
+    if (String(sheets[i].getSheetId()) === String(gid)) return sheets[i];
+  }
+  return ss.getSheets()[0];
 }</div>
-        <button class="btn bs sm copy-btn" onclick="copyGAS()">📋 Copiar código</button>
-      </div>
-
-      <div style="margin-bottom:16px">
-        <div style="font-size:14px;font-weight:600;margin-bottom:10px"><span class="step-num">3</span>Publicar como Web App</div>
-        <div style="font-size:13px;color:var(--text2)">En Apps Script: <strong style="color:var(--text)">Implementar → Nueva implementación → Web App</strong><br>
-        Configurar:<br>
-        • <strong style="color:var(--text)">Ejecutar como:</strong> Yo (tu cuenta)<br>
-        • <strong style="color:var(--text)">Quién tiene acceso:</strong> <strong style="color:var(--yellow)">Cualquier persona</strong><br>
-        Hacer clic en <strong style="color:var(--text)">Implementar</strong> y autorizar.</div>
-      </div>
-
-      <div style="margin-bottom:16px">
-        <div style="font-size:14px;font-weight:600;margin-bottom:10px"><span class="step-num">4</span>Pegar la URL del Web App aquí</div>
-        <div class="fgrid" style="grid-template-columns:1fr auto">
-          <input type="url" id="cfg-gasUrl" placeholder="https://script.google.com/macros/s/.../exec" style="font-family:'Courier New',Courier,monospace;font-size:12px">
-          <button class="btn bp" onclick="testGAS()">🔌 Probar</button>
-        </div>
-        <div id="gas-test-result" style="margin-top:8px;font-size:12px"></div>
-      </div>
-      <button class="btn bp" onclick="saveGAS()">💾 Guardar y Conectar</button>
+      <button class="btn bs sm" style="margin-top:6px" onclick="copyCode()">📋 Copiar código</button>
     </div>
 
-    <!-- TAB: API -->
-    <div id="tab-api-content" style="display:none">
-      <div class="tip">⚠️ Requiere que el Google Sheet sea público ("Cualquier persona con el enlace puede ver"). Si el Sheet es privado, use la Opción 1.</div>
-      <div class="fgrid" style="margin-bottom:14px">
-        <div class="fg full">
-          <label>API Key de Google Sheets</label>
-          <input type="password" id="cfg-apiKey" placeholder="AIzaSy..." style="font-family:'Courier New',Courier,monospace;font-size:12px">
-          <small style="color:var(--text3);font-size:11px;margin-top:3px">Obtener en: <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color:var(--accent2)">Google Cloud Console → Credenciales</a> · Habilitar "Google Sheets API"</small>
-        </div>
-        <div class="fg">
-          <label>Spreadsheet ID</label>
-          <input type="text" id="cfg-sid" value="1YwaTve0UEvlsM8Zy8xYn5UwwqOAfprmPM7orGIj_rYw" style="font-family:'Courier New',Courier,monospace;font-size:12px">
-        </div>
-        <div class="fg">
-          <label>Nombre de Hoja (o dejar vacío)</label>
-          <input type="text" id="cfg-sname" placeholder="Hoja1" style="font-family:'Courier New',Courier,monospace;font-size:12px">
-        </div>
-      </div>
-      <div style="display:flex;gap:8px">
-        <button class="btn bp" onclick="saveAPIKey()">💾 Guardar</button>
-        <button class="btn bs" onclick="testAPIKey()">🔌 Probar Conexión</button>
-      </div>
-      <div id="api-test-result" style="margin-top:8px;font-size:12px"></div>
+    <div class="steprow">
+      <div class="stepttl"><span class="stepn">4</span>Publicar como Web App</div>
+    </div>
+    <div style="margin-left:34px;margin-bottom:18px;font-size:13px;color:var(--text2);line-height:1.8">
+      En Apps Script haga clic en <strong style="color:var(--text)">Implementar → Nueva implementación</strong><br>
+      Tipo: <strong style="color:var(--text)">Aplicación web</strong><br>
+      Ejecutar como: <strong style="color:var(--text)">Yo (su cuenta)</strong><br>
+      Quién tiene acceso: <strong style="color:var(--yellow)">Cualquier persona (incluso anónima)</strong><br>
+      Clic en <strong style="color:var(--text)">Implementar</strong> → Autorizar → Copiar la URL
     </div>
 
-    <!-- TAB: MANUAL -->
-    <div id="tab-manual-content" style="display:none">
-      <div class="tip">📌 Si no puede conectar Sheets, puede trabajar localmente. Los datos del cronograma se guardan en el navegador (localStorage) y puede exportar a Excel en cualquier momento.</div>
-      <div style="font-size:13px;color:var(--text2);margin-bottom:14px">
-        También puede cargar un archivo CSV exportado desde Google Sheets:
+    <div class="steprow">
+      <div class="stepttl"><span class="stepn">5</span>Pegar la URL aquí y guardar</div>
+    </div>
+    <div style="margin-left:34px">
+      <div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:8px">
+        <input type="url" id="cfg-url" placeholder="https://script.google.com/macros/s/AKfy.../exec" style="font-family:monospace;font-size:12px">
+        <button class="btn bp" onclick="testAndSave()">✅ Probar y Guardar</button>
       </div>
-      <div class="evzone" onclick="document.getElementById('csvFile').click()" style="padding:18px">
-        <div style="font-size:13px;color:var(--text2)">📂 Cargar CSV desde Google Sheets</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:4px">En Sheets: Archivo → Descargar → CSV</div>
-      </div>
-      <input type="file" id="csvFile" accept=".csv" style="display:none" onchange="loadCSVFile(event)">
-      <div id="csv-result" style="margin-top:8px;font-size:12px"></div>
+      <div id="test-result" style="font-size:12px;margin-top:6px"></div>
     </div>
   </div>
 
-  <!-- COLUMN MAP -->
-  <div class="card" style="margin-bottom:18px">
-    <div class="ctitle">📋 Mapeo de Columnas (opcional)</div>
-    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Si el sistema no detecta las columnas automáticamente, especifíquelas aquí (nombre exacto de la cabecera en Sheets):</div>
-    <div class="fgrid">
-      <div class="fg"><label>Columna Fecha</label><input type="text" id="cm-fecha" placeholder="fecha_auditoria"></div>
-      <div class="fg"><label>Columna Responsable</label><input type="text" id="cm-resp" placeholder="responsable"></div>
-      <div class="fg"><label>Columna Hallazgos</label><input type="text" id="cm-hall" placeholder="hallazgos"></div>
-      <div class="fg"><label>Columna Observaciones</label><input type="text" id="cm-obs" placeholder="observaciones"></div>
-      <div class="fg"><label>Columna Resultado</label><input type="text" id="cm-res" placeholder="resultado_auditoria"></div>
-      <div class="fg"><label>Columna Sede</label><input type="text" id="cm-sede" placeholder="sede"></div>
+  <!-- ESTADO DE CONEXIÓN -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="ct">📡 Estado de Conexión</div>
+    <div id="conn-status">
+      <div style="font-size:13px;color:var(--text2)">Configure la URL del Apps Script para conectar.</div>
     </div>
-    <button class="btn bs sm" style="margin-top:12px" onclick="saveColMap()">💾 Guardar Mapeo</button>
   </div>
 
-  <!-- PREVIEW -->
-  <div class="card" id="previewCard" style="display:none">
-    <div class="ctitle">👀 Datos Cargados desde Sheets</div>
-    <div id="sheetPreview"></div>
+  <!-- PREVIEW DATOS -->
+  <div class="card" id="prev-card" style="display:none">
+    <div class="ct">👀 Datos del Sheet (vista previa)</div>
+    <div id="prev-data"></div>
   </div>
 </section>
 
@@ -457,50 +460,61 @@ select option{background:var(--bg2)}
 </div><!-- /lay -->
 
 <!-- MODAL VISITA -->
-<div class="moverlay" id="visitModal">
+<div class="mo" id="vmodal">
   <div class="modal">
-    <div class="mhdr"><div class="mtitle" id="mtitle">Visita</div><button class="xbtn" onclick="closeM('visitModal')">✕</button></div>
-    <div class="mbody">
-      <div class="fgrid">
-        <div class="fg"><label>Fecha</label><input type="date" id="m-fecha" class="fauto" readonly></div>
-        <div class="fg"><label>Sede</label><input type="text" id="m-sede" class="fauto" readonly></div>
+    <div class="mh"><div class="mt" id="mtitle">Visita</div><button class="xb" onclick="closeM('vmodal')">✕</button></div>
+    <div class="mb">
+      <div class="fg2">
+        <div class="fg"><label>Fecha</label><input type="date" id="m-fecha" class="fa" readonly></div>
+        <div class="fg"><label>Sede</label><input type="text" id="m-sede" class="fa" readonly></div>
         <div class="fg"><label>Hora Llegada</label><input type="time" id="m-llegada"></div>
         <div class="fg"><label>Hora Salida</label><input type="time" id="m-salida"></div>
         <div class="fg"><label>Responsable</label><input type="text" id="m-resp"></div>
         <div class="fg"><label>Estado</label><select id="m-estado"><option value="Pendiente">⏳ Pendiente</option><option value="Realizada">✅ Realizada</option><option value="Reprogramada">🔄 Reprogramada</option></select></div>
-        <div class="fg full"><label class="lauto">Hallazgos</label><textarea id="m-hall" class="fauto"></textarea></div>
-        <div class="fg full"><label class="lauto">Observaciones</label><textarea id="m-obs" class="fauto"></textarea></div>
-        <div class="fg"><label class="lauto">Resultado</label><input type="text" id="m-res" class="fauto"></div>
-        <div class="fg"><label class="lauto">Comentarios</label><input type="text" id="m-com" class="fauto"></div>
+        <div class="fg full"><label class="la">Nombre Auditado</label><input type="text" id="m-nombre" class="fa"></div>
+        <div class="fg"><label class="la">Calidad Atención</label><input type="text" id="m-calidad" class="fa"></div>
+        <div class="fg"><label class="la">Presentación</label><input type="text" id="m-pres" class="fa"></div>
+        <div class="fg full"><label class="la">Observaciones</label><textarea id="m-obs" class="fa"></textarea></div>
+        <div class="fg full"><label class="la">Documentos Pendientes</label><textarea id="m-docs" class="fa"></textarea></div>
       </div>
     </div>
-    <div class="mfooter"><button class="btn bs" onclick="closeM('visitModal')">Cancelar</button><button class="btn bp" onclick="saveModal()">💾 Guardar</button></div>
+    <div class="mf"><button class="btn bs" onclick="closeM('vmodal')">Cancelar</button><button class="btn bp" onclick="saveModal()">💾 Guardar</button></div>
   </div>
 </div>
 
 <div id="toasts"></div>
 
 <script>
-// ══════════════════════════════════════
-//  STATE
-// ══════════════════════════════════════
-const S = {
-  sched: [],
-  rows: [],     // from sheets
-  cols: {},     // detected columns
-  curId: null,
-  fMonth: null,
-  fSede: 'all',
-  cfg: {}
+// ══════════════════════════════════════════════════
+//  COLUMN MAP — nombres normalizados del Sheet real
+//  Hoja: Marca temporal | NOMBRE A QUIEN SE AUDITA | CEDULA... etc.
+// ══════════════════════════════════════════════════
+const COLS = {
+  fecha:     'fecha_auditoria',       // columna "FECHA AUDITORIA"
+  marca:     'marca_temporal',        // columna "Marca temporal"
+  nombre:    'nombre_a_quien_se_audita',
+  cedula:    'cedula_a_quien_se_audita',
+  hrecurso:  'hora_de_llegada_a_la_sede_del_recurso',
+  pres1:     'presentacion_del_personal',
+  calidad:   'calidad_de_atencion_al_usuario',
+  obs:       'obsevaciones_de_la_atencion',
+  sede:      'sede',
+  docs:      'docuemento_pendientes_por_radicar_o_guardadosrecuerde_que_deben_validar_cajones_y_tula_pendiente_por_enviar_solo_deben_haber_docuemntos_del_dia_anterior',
+  video:     'video_apertura_de_buzones'
 };
 
 const SEDES = ['Calle 26','Avenida 68','Consorcio','Calle 94'];
 const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 const DIAS  = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 
-// ══════════════════════════════════════
+const S = {
+  sched:[], rows:[], curId:null,
+  fMonth:null, fSede:'all', cfg:{}
+};
+
+// ══════════════════════════════════════════════════
 //  INIT
-// ══════════════════════════════════════
+// ══════════════════════════════════════════════════
 window.onload = () => {
   loadCfg();
   setToday();
@@ -512,308 +526,213 @@ window.onload = () => {
 function setToday(){
   const d = new Date();
   document.getElementById('f-fecha').value = d.toISOString().split('T')[0];
-  document.getElementById('aud-fecha').textContent =
+  document.getElementById('af').textContent =
     d.toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 }
 
-// ══════════════════════════════════════
+// ══════════════════════════════════════════════════
 //  CONFIG
-// ══════════════════════════════════════
+// ══════════════════════════════════════════════════
 function loadCfg(){
   try{
     S.cfg = JSON.parse(localStorage.getItem('comp_cfg')||'{}');
-    if(S.cfg.gasUrl) document.getElementById('cfg-gasUrl').value = S.cfg.gasUrl;
-    if(S.cfg.apiKey) document.getElementById('cfg-apiKey').value = S.cfg.apiKey;
-    if(S.cfg.sid) document.getElementById('cfg-sid').value = S.cfg.sid;
-    if(S.cfg.cmFecha) document.getElementById('cm-fecha').value = S.cfg.cmFecha;
-    if(S.cfg.cmResp) document.getElementById('cm-resp').value = S.cfg.cmResp;
-    if(S.cfg.cmHall) document.getElementById('cm-hall').value = S.cfg.cmHall;
-    if(S.cfg.cmObs) document.getElementById('cm-obs').value = S.cfg.cmObs;
-    if(S.cfg.cmRes) document.getElementById('cm-res').value = S.cfg.cmRes;
-    if(S.cfg.cmSede) document.getElementById('cm-sede').value = S.cfg.cmSede;
+    if(S.cfg.gasUrl) document.getElementById('cfg-url').value = S.cfg.gasUrl;
   }catch(e){}
 }
-
 function saveCfg(){ localStorage.setItem('comp_cfg', JSON.stringify(S.cfg)); }
 
-function saveGAS(){
-  const url = document.getElementById('cfg-gasUrl').value.trim();
-  if(!url){ toast('Ingrese la URL del Web App','warning'); return; }
-  S.cfg.gasUrl = url;
-  saveCfg();
-  toast('URL guardada. Sincronizando...','success');
-  doSync();
-}
-
-function saveAPIKey(){
-  S.cfg.apiKey = document.getElementById('cfg-apiKey').value.trim();
-  S.cfg.sid = document.getElementById('cfg-sid').value.trim();
-  S.cfg.sname = document.getElementById('cfg-sname').value.trim();
-  saveCfg();
-  toast('API Key guardada. Sincronizando...','success');
-  doSync();
-}
-
-function saveColMap(){
-  S.cfg.cmFecha = document.getElementById('cm-fecha').value.trim();
-  S.cfg.cmResp  = document.getElementById('cm-resp').value.trim();
-  S.cfg.cmHall  = document.getElementById('cm-hall').value.trim();
-  S.cfg.cmObs   = document.getElementById('cm-obs').value.trim();
-  S.cfg.cmRes   = document.getElementById('cm-res').value.trim();
-  S.cfg.cmSede  = document.getElementById('cm-sede').value.trim();
-  saveCfg();
-  toast('Mapeo guardado','success');
-  detectCols();
-}
-
-// ══════════════════════════════════════
-//  SYNC
-// ══════════════════════════════════════
-async function doSync(){
-  setSt('wait','Conectando...');
-
-  // Priority 1: Google Apps Script Web App
-  if(S.cfg.gasUrl){
-    const ok = await fetchGAS(S.cfg.gasUrl);
-    if(ok) return;
-  }
-
-  // Priority 2: API Key
-  if(S.cfg.apiKey && S.cfg.sid){
-    const ok = await fetchAPI();
-    if(ok) return;
-  }
-
-  // Priority 3: CSV public export (may fail due to CORS from file://)
-  const ok3 = await fetchCSV();
-  if(ok3) return;
-
-  setSt('off','Sin conexión a Sheets');
-  toast('No se pudo conectar. Vaya a Configuración para configurar la conexión.','warning');
-}
-
-async function fetchGAS(url){
+async function testAndSave(){
+  const url = document.getElementById('cfg-url').value.trim();
+  const el  = document.getElementById('test-result');
+  if(!url){ el.innerHTML='<span style="color:var(--yellow)">⚠️ Ingrese la URL</span>'; return; }
+  el.innerHTML='<span style="color:var(--text3)">Probando conexión...</span>';
   try{
     const r = await fetch(url+'?_='+Date.now());
     if(!r.ok) throw new Error('HTTP '+r.status);
     const j = await r.json();
-    if(!j.ok || !j.rows) throw new Error('Bad response');
+    if(!j.ok) throw new Error(j.error||'Respuesta inválida');
+    S.cfg.gasUrl = url;
+    saveCfg();
+    el.innerHTML=`<span class="oktext">✅ Conexión exitosa · ${j.total} filas encontradas · Columnas: ${(j.headers||[]).slice(0,6).join(', ')}...</span>`;
     S.rows = j.rows;
-    detectCols();
-    afterSync(j.rows.length,'Apps Script');
-    return true;
+    detectCols(j.headers||[]);
+    mergeIntoSched();
+    renderAll();
+    showPreview(j);
+    setSt('ok',`Conectado · ${j.total} registros`);
+    toast(`Conectado correctamente · ${j.total} registros del Sheet`,'success');
   }catch(e){
-    console.warn('GAS fetch failed:',e.message);
-    return false;
+    el.innerHTML=`<span style="color:var(--red)">❌ Error: ${e.message}</span><br><span style="color:var(--text3);font-size:11px">Verifique que el Web App esté publicado como "Cualquier persona".</span>`;
   }
 }
 
-async function fetchAPI(){
+function copyCode(){
+  const code = document.getElementById('gascode').textContent;
+  navigator.clipboard.writeText(code)
+    .then(()=>toast('Código copiado al portapapeles ✅','success'))
+    .catch(()=>{
+      const t=document.createElement('textarea');t.value=code;
+      document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();
+      toast('Código copiado','success');
+    });
+}
+
+// ══════════════════════════════════════════════════
+//  SYNC
+// ══════════════════════════════════════════════════
+async function doSync(){
+  setSt('wait','Conectando...');
+  if(!S.cfg.gasUrl){
+    setSt('err','Sin URL configurada');
+    toast('Configure la URL del Apps Script en ⚙ Configuración','warning');
+    return;
+  }
   try{
-    const sid = S.cfg.sid || '1YwaTve0UEvlsM8Zy8xYn5UwwqOAfprmPM7orGIj_rYw';
-    const range = S.cfg.sname || 'A:Z';
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${sid}/values/${encodeURIComponent(range)}?key=${S.cfg.apiKey}`;
-    const r = await fetch(url);
+    const r = await fetch(S.cfg.gasUrl+'?_='+Date.now());
+    if(!r.ok) throw new Error('HTTP '+r.status);
     const j = await r.json();
-    if(!j.values) throw new Error(j.error?.message||'No values');
-    const hdrs = j.values[0].map(h=>String(h).toLowerCase().trim().replace(/\s+/g,'_').replace(/[^\w_áéíóúñ]/gi,''));
-    S.rows = j.values.slice(1).map(row=>{const o={};hdrs.forEach((h,i)=>o[h]=row[i]||'');return o;}).filter(r=>Object.values(r).some(v=>v));
-    detectCols();
-    afterSync(S.rows.length,'API Key');
-    return true;
+    if(!j.ok) throw new Error(j.error||'Respuesta inválida');
+    S.rows = j.rows;
+    detectCols(j.headers||[]);
+    mergeIntoSched();
+    renderAll();
+    showPreview(j);
+    setSt('ok',`Sincronizado · ${j.total} reg · ${new Date().toLocaleTimeString('es-CO')}`);
+    toast(`${j.total} registros cargados desde Google Sheets`,'success');
   }catch(e){
-    console.warn('API Key fetch failed:',e.message);
-    document.getElementById('api-test-result').innerHTML = `<span style="color:var(--red)">❌ Error: ${e.message}</span>`;
-    return false;
+    setSt('err','Error de conexión');
+    toast('No se pudo conectar: '+e.message+'. Verifique la configuración.','error');
+    updateConnStatus(false, e.message);
   }
 }
 
-async function fetchCSV(){
-  const sid = '1YwaTve0UEvlsM8Zy8xYn5UwwqOAfprmPM7orGIj_rYw';
-  const urls = [
-    `https://docs.google.com/spreadsheets/d/${sid}/export?format=csv&gid=992195120`,
-    `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:csv&gid=992195120`
-  ];
-  for(const url of urls){
-    try{
-      const r = await fetch(url,{mode:'cors',cache:'no-cache'});
-      if(!r.ok) continue;
-      const txt = await r.text();
-      if(!txt||txt.includes('<!DOCTYPE')) continue;
-      const parsed = parseCSV(txt);
-      if(!parsed.length) continue;
-      S.rows = parsed;
-      detectCols();
-      afterSync(parsed.length,'CSV público');
-      return true;
-    }catch(e){ continue; }
-  }
-  return false;
+function setSt(type,txt){
+  const d=document.getElementById('sdot');
+  d.className='dot '+(type==='ok'?'ok':type==='err'?'err':'wait');
+  document.getElementById('stxt').textContent=txt;
+  updateConnStatus(type==='ok', txt);
 }
 
-function afterSync(n, method){
-  setSt('','Sincronizado · '+new Date().toLocaleTimeString('es-CO'));
-  toast(`${n} registros cargados (${method})`,'success');
-  mergeIntoSched();
-  renderSched();
-  updateTable();
-  updateDash();
-  loadTodayAudit();
-  showPreview();
-}
-
-function setSt(cls,txt){
-  document.getElementById('syncDot').className='dot '+(cls||'');
-  document.getElementById('syncTxt').textContent=txt;
-}
-
-// ══════════════════════════════════════
-//  GAS TEST
-// ══════════════════════════════════════
-async function testGAS(){
-  const url = document.getElementById('cfg-gasUrl').value.trim();
-  const el = document.getElementById('gas-test-result');
-  if(!url){el.innerHTML='<span style="color:var(--yellow)">Ingrese la URL</span>';return;}
-  el.innerHTML='<span style="color:var(--text3)">Probando...</span>';
-  try{
-    const r = await fetch(url+'?_='+Date.now());
-    const j = await r.json();
-    if(j.ok){
-      el.innerHTML=`<span class="ok-check">✅ Conexión exitosa · ${j.total} filas · Columnas: ${(j.headers||[]).join(', ')}</span>`;
-    } else {
-      el.innerHTML=`<span style="color:var(--red)">❌ Respuesta inválida del servidor</span>`;
-    }
-  }catch(e){
-    el.innerHTML=`<span style="color:var(--red)">❌ Error: ${e.message}. Verifique que el Web App esté publicado como "Cualquier persona".</span>`;
+function updateConnStatus(ok, msg){
+  const el=document.getElementById('conn-status');
+  if(ok){
+    el.innerHTML=`<div style="display:flex;align-items:center;gap:8px">
+      <div class="dot ok"></div>
+      <span style="color:var(--green);font-size:13px;font-weight:600">Conectado a Google Sheets</span>
+    </div>
+    <div style="font-size:12px;color:var(--text3);margin-top:6px">URL: ${S.cfg.gasUrl||''}</div>
+    <div style="font-size:12px;color:var(--text3)">Hoja ID: 1YwaTve0UEvlsM8Zy8xYn5UwwqOAfprmPM7orGIj_rYw · GID: 992195120</div>`;
+  } else {
+    el.innerHTML=`<div style="display:flex;align-items:center;gap:8px">
+      <div class="dot err"></div>
+      <span style="color:var(--red);font-size:13px">Sin conexión · ${msg||''}</span>
+    </div>
+    <div style="font-size:12px;color:var(--text3);margin-top:6px">Siga los pasos de arriba para configurar.</div>`;
   }
 }
 
-async function testAPIKey(){
-  const el = document.getElementById('api-test-result');
-  el.innerHTML='<span style="color:var(--text3)">Probando...</span>';
-  const ok = await fetchAPI();
-  if(!ok) el.innerHTML='<span style="color:var(--red)">❌ No se pudo conectar. Verifique que el Sheet sea público y la API Key sea correcta.</span>';
-  else el.innerHTML='<span class="ok-check">✅ Conectado correctamente</span>';
+// ══════════════════════════════════════════════════
+//  DETECT COLUMNS (flexible, usa COLS como mapa base
+//  pero también intenta detectar automáticamente)
+// ══════════════════════════════════════════════════
+function detectCols(headers){
+  // Las cabeceras ya vienen normalizadas desde el Apps Script
+  // Solo verificamos cuáles están presentes
+  if(!headers.length) return;
+  console.log('Columnas del Sheet:', headers);
+
+  // Buscar columna de fecha flexible
+  const fCol = headers.find(h=>h.includes('fecha_auditoria')) ||
+               headers.find(h=>h.includes('fecha')) ||
+               headers.find(h=>h.includes('marca_temporal')) || '';
+  if(fCol) COLS.fecha = fCol;
+
+  const nCol = headers.find(h=>h.includes('nombre_a_quien')) || headers.find(h=>h.includes('nombre'));
+  if(nCol) COLS.nombre = nCol;
+
+  const cCol = headers.find(h=>h.includes('calidad'));
+  if(cCol) COLS.calidad = cCol;
+
+  const oCol = headers.find(h=>h.includes('obsev') || h.includes('observ'));
+  if(oCol) COLS.obs = oCol;
+
+  const sCol = headers.find(h=>h==='sede');
+  if(sCol) COLS.sede = sCol;
+
+  const dCol = headers.find(h=>h.includes('docuem') || h.includes('document'));
+  if(dCol) COLS.docs = dCol;
+
+  const vCol = headers.find(h=>h.includes('video'));
+  if(vCol) COLS.video = vCol;
+
+  const hrCol = headers.find(h=>h.includes('hora_de_llegada'));
+  if(hrCol) COLS.hrecurso = hrCol;
+
+  const presCol = headers.find(h=>h.includes('presentacion'));
+  if(presCol) COLS.pres1 = presCol;
+
+  const cedCol = headers.find(h=>h.includes('cedula'));
+  if(cedCol) COLS.cedula = cedCol;
 }
 
-// ══════════════════════════════════════
-//  CSV FROM FILE
-// ══════════════════════════════════════
-function loadCSVFile(event){
-  const file = event.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try{
-      S.rows = parseCSV(e.target.result);
-      detectCols();
-      mergeIntoSched();
-      renderSched(); updateTable(); updateDash(); loadTodayAudit(); showPreview();
-      document.getElementById('csv-result').innerHTML = `<span class="ok-check">✅ ${S.rows.length} filas cargadas desde CSV</span>`;
-      toast(`CSV cargado: ${S.rows.length} registros`,'success');
-    }catch(err){
-      document.getElementById('csv-result').innerHTML = `<span style="color:var(--red)">❌ Error: ${err.message}</span>`;
-    }
-  };
-  reader.readAsText(file,'UTF-8');
+function gv(row, key){
+  const col = COLS[key];
+  if(!col||!row) return '';
+  return row[col] || '';
 }
 
-// ══════════════════════════════════════
-//  PARSE CSV
-// ══════════════════════════════════════
-function parseCSV(csv){
-  const lines = csv.split('\n').filter(l=>l.trim());
-  if(!lines.length) return [];
-  const hdrs = splitLine(lines[0]).map(h=>String(h).toLowerCase().trim().replace(/\s+/g,'_').replace(/[^\w_áéíóúñ]/gi,''));
-  return lines.slice(1).map(l=>{
-    const v=splitLine(l);
-    const o={};
-    hdrs.forEach((h,i)=>o[h]=(v[i]||'').trim());
-    return o;
-  }).filter(r=>Object.values(r).some(v=>v));
-}
-
-function splitLine(line){
-  const r=[];let cur='',inQ=false;
-  for(let i=0;i<line.length;i++){
-    const c=line[i];
-    if(c==='"'){inQ=!inQ;}
-    else if(c===','&&!inQ){r.push(cur);cur='';}
-    else{cur+=c;}
-  }
-  r.push(cur);
-  return r;
-}
-
-// ══════════════════════════════════════
-//  DETECT COLUMNS
-// ══════════════════════════════════════
-function detectCols(){
-  if(!S.rows.length) return;
-  const keys = Object.keys(S.rows[0]);
-  const find = terms => keys.find(k=>terms.some(t=>k.includes(t)))||'';
-
-  // Use manual overrides first, then auto-detect
-  S.cols = {
-    fecha:  S.cfg.cmFecha || find(['fecha','date','auditoria']),
-    resp:   S.cfg.cmResp  || find(['responsable','auditor','encargado']),
-    hall:   S.cfg.cmHall  || find(['hallazgo','finding']),
-    obs:    S.cfg.cmObs   || find(['observacion','observation','nota']),
-    res:    S.cfg.cmRes   || find(['resultado','result','calific']),
-    com:    find(['comentario','coment']),
-    sede:   S.cfg.cmSede  || find(['sede','sucursal','ubicacion'])
-  };
-}
-
-function getVal(row, key){
-  const col = S.cols[key];
-  if(!col) return '';
-  return row[col] || row[col.toLowerCase()] || '';
-}
-
-function normDate(d){
-  if(!d) return '';
-  const s = String(d).trim();
-  const parsed = new Date(s);
-  if(!isNaN(parsed)&&s.includes('-')) return s.slice(0,10);
-  if(!isNaN(new Date(s))) return new Date(s).toISOString().split('T')[0];
+function normDate(v){
+  if(!v) return '';
+  const s = String(v).trim();
+  // Already ISO
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  // Parse date
+  const d = new Date(s);
+  if(!isNaN(d)) return d.toISOString().split('T')[0];
+  // DD/MM/YYYY
   const m = s.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
   if(m){ const y=m[3].length===2?'20'+m[3]:m[3]; return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`; }
   return s;
 }
 
 function findRow(dateStr){
-  return S.rows.find(r=>normDate(getVal(r,'fecha'))===dateStr)||null;
+  if(!dateStr||!S.rows.length) return null;
+  return S.rows.find(r=>{
+    const rv = gv(r,'fecha') || gv(r,'marca');
+    return normDate(rv)===dateStr;
+  }) || null;
 }
 
-// ══════════════════════════════════════
-//  MERGE SHEETS INTO SCHEDULE
-// ══════════════════════════════════════
 function mergeIntoSched(){
   S.sched.forEach(v=>{
-    const row = findRow(v.dateStr);
+    const row=findRow(v.dateStr);
     if(row){
-      v.hall = v.hall || getVal(row,'hall');
-      v.obs  = v.obs  || getVal(row,'obs');
-      v.resp = v.resp || getVal(row,'resp');
-      v.res  = v.res  || getVal(row,'res');
-      v.com  = v.com  || getVal(row,'com');
-      if(v.hall||v.obs||v.res) v.status='Realizada';
+      v.nombre  = v.nombre  || gv(row,'nombre');
+      v.cedula  = v.cedula  || gv(row,'cedula');
+      v.hrecurso= v.hrecurso|| gv(row,'hrecurso');
+      v.pres    = v.pres    || gv(row,'pres1');
+      v.calidad = v.calidad || gv(row,'calidad');
+      v.obs     = v.obs     || gv(row,'obs');
+      v.docs    = v.docs    || gv(row,'docs');
+      v.video   = v.video   || gv(row,'video');
+      if(v.nombre||v.calidad||v.obs) v.status='Realizada';
     }
   });
   saveLocal();
 }
 
-// ══════════════════════════════════════
+function renderAll(){
+  renderSched(); updateTable(); updateDash();
+}
+
+// ══════════════════════════════════════════════════
 //  SCHEDULE
-// ══════════════════════════════════════
+// ══════════════════════════════════════════════════
 function genSchedule(){
   const visits=[];
-  const today=new Date();
   const first=new Date(2025,4,22);
   let si=0;
-
-  visits.push(mkVisit(first,SEDES[si++%4]));
+  visits.push(mkV(first,SEDES[si++%4]));
 
   const end=new Date(2025,11,31);
   let cur=new Date(2025,4,26);
@@ -821,69 +740,52 @@ function genSchedule(){
 
   while(cur<=end){
     const wv=2+(Math.random()>.55?1:0);
-    const wdays=shuffle([1,2,3,4,5]).slice(0,wv);
+    const wdays=shuf([1,2,3,4,5]).slice(0,wv);
     wdays.forEach(wd=>{
       const d=new Date(cur);
-      const diff=(wd-d.getDay()+7)%7;
-      d.setDate(d.getDate()+diff);
+      d.setDate(d.getDate()+(wd-d.getDay()+7)%7);
       if(d<=end&&d>=first){
         const iso=d.toISOString().split('T')[0];
-        if(!used.has(iso)){ used.add(iso); visits.push(mkVisit(new Date(d),SEDES[si++%4])); }
+        if(!used.has(iso)){used.add(iso);visits.push(mkV(new Date(d),SEDES[si++%4]));}
       }
     });
     cur.setDate(cur.getDate()+7);
   }
 
   visits.sort((a,b)=>a.date-b.date);
-
-  // Preserve existing data
   visits.forEach(v=>{
     const ex=S.sched.find(s=>s.dateStr===v.dateStr);
-    if(ex){ v.status=ex.status;v.resp=ex.resp;v.hall=ex.hall;v.obs=ex.obs;v.res=ex.res;v.com=ex.com;v.evs=ex.evs;v.llegada=ex.llegada;v.salida=ex.salida; }
+    if(ex){Object.assign(v,{status:ex.status,resp:ex.resp,nombre:ex.nombre,calidad:ex.calidad,obs:ex.obs,docs:ex.docs,evs:ex.evs,llegada:ex.llegada,salida:ex.salida});}
   });
-
   S.sched=visits;
   mergeIntoSched();
-  renderSched(); updateTable(); updateDash(); updateBadges();
-  toast(`Cronograma: ${visits.length} visitas Mayo–Dic 2025`,'success');
+  renderAll();
+  updateBadges();
+  toast(`Cronograma generado: ${visits.length} visitas Mayo–Dic 2025`,'success');
 }
 
-function mkVisit(date,sede){
-  const id=`v_${date.toISOString().split('T')[0]}_${sede.replace(/\s/g,'')}`;
-  return { id, date:new Date(date), dateStr:date.toISOString().split('T')[0],
-    dayName:DIAS[date.getDay()], monthIdx:date.getMonth(),
-    sede, status:'Pendiente', resp:'', hall:'', obs:'', res:'', com:'',
-    evs:[], llegada:'', salida:'' };
+function mkV(date,sede){
+  return{id:`v_${date.toISOString().split('T')[0]}_${sede.replace(/\s/g,'')}`,
+    date:new Date(date),dateStr:date.toISOString().split('T')[0],
+    dayName:DIAS[date.getDay()],monthIdx:date.getMonth(),
+    sede,status:'Pendiente',resp:'',nombre:'',cedula:'',hrecurso:'',
+    pres:'',calidad:'',obs:'',docs:'',video:'',evs:[],llegada:'',salida:''};
 }
+function shuf(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=~~(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
 
-function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=~~(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
-
-// ══════════════════════════════════════
+// ══════════════════════════════════════════════════
 //  RENDER SCHEDULE
-// ══════════════════════════════════════
+// ══════════════════════════════════════════════════
 function buildMonthFilter(){
-  const months=['May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-  const idx=[4,5,6,7,8,9,10,11];
+  const ms=['May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const ix=[4,5,6,7,8,9,10,11];
   const c=document.getElementById('mfilt');
-  c.innerHTML='<button class="mbtn on" onclick="filMonth(this,null)">Todos</button>';
-  months.forEach((m,i)=>c.innerHTML+=`<button class="mbtn" onclick="filMonth(this,${idx[i]})">${m}</button>`);
+  c.innerHTML='<button class="mb2 on" onclick="fMonth(this,null)">Todos</button>';
+  ms.forEach((m,i)=>c.innerHTML+=`<button class="mb2" onclick="fMonth(this,${ix[i]})">${m}</button>`);
 }
-
-function filMonth(btn,m){
-  document.querySelectorAll('.mbtn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on'); S.fMonth=m; renderSched();
-}
-
-function filSede(btn,s){
-  document.querySelectorAll('.schip').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on'); S.fSede=s; renderSched();
-}
-
-function filterBySede(s){
-  showPg('cronograma'); S.fSede=s;
-  document.querySelectorAll('.schip').forEach(b=>b.classList.toggle('on',b.dataset.sede===s));
-  renderSched();
-}
+function fMonth(btn,m){document.querySelectorAll('.mb2').forEach(b=>b.classList.remove('on'));btn.classList.add('on');S.fMonth=m;renderSched();}
+function fSede(btn,s){document.querySelectorAll('.sch').forEach(b=>b.classList.remove('on'));btn.classList.add('on');S.fSede=s;renderSched();}
+function fBySede(s){showPg('cronograma');S.fSede=s;document.querySelectorAll('.sch').forEach(b=>b.classList.toggle('on',b.dataset.s===s));renderSched();}
 
 function renderSched(){
   const today=new Date().toISOString().split('T')[0];
@@ -892,68 +794,64 @@ function renderSched(){
     if(S.fSede!=='all'&&v.sede!==S.fSede) return false;
     return true;
   });
-
-  const c=document.getElementById('schedGrid');
+  const c=document.getElementById('sgrid');
   if(!data.length){c.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">📅</div><div class="et">Sin visitas</div></div>`;return;}
-
-  const sedeClr={'Calle 26':'var(--accent2)','Avenida 68':'var(--green)','Consorcio':'var(--yellow)','Calle 94':'var(--orange)'};
+  const sc={'Calle 26':'var(--accent2)','Avenida 68':'var(--green)','Consorcio':'var(--yellow)','Calle 94':'var(--orange)'};
   c.innerHTML=data.map(v=>{
-    const isT=v.dateStr===today, isPast=v.dateStr<today;
-    const bc=v.status==='Realizada'?'bg':v.status==='Reprogramada'?'br':'by';
-    return `<div class="scard ${isT?'today':''} ${isPast&&v.status==='Pendiente'?'past':''}" onclick="openModal('${v.id}')">
-      <div class="sdate">${v.dateStr}</div>
-      <div class="sday">${v.dayName} ${v.date.getDate()}</div>
-      <div class="ssede" style="color:${sedeClr[v.sede]||'var(--text2)'}">${v.sede}</div>
+    const it=v.dateStr===today,ip=v.dateStr<today;
+    const bc=v.status==='Realizada'?'bg2c':v.status==='Reprogramada'?'brc':'byc';
+    return `<div class="scard ${it?'today':''} ${ip&&v.status==='Pendiente'?'past':''}" onclick="openM('${v.id}')">
+      <div class="sdp">${v.dateStr}</div>
+      <div class="sdn">${v.dayName} ${v.date.getDate()}</div>
+      <div class="sds" style="color:${sc[v.sede]||'var(--text2)'}">${v.sede}</div>
       <div style="display:flex;justify-content:space-between;align-items:center">
         <span class="badge ${bc}">${v.status}</span>
         ${v.evs?.length?`<span style="font-size:11px;color:var(--text3)">📎${v.evs.length}</span>`:''}
       </div>
-      ${v.resp?`<div style="font-size:11px;color:var(--text3);margin-top:6px">👤 ${v.resp}</div>`:''}
+      ${v.nombre?`<div style="font-size:11px;color:var(--text3);margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">👤 ${v.nombre}</div>`:''}
     </div>`;
   }).join('');
 }
 
-// ══════════════════════════════════════
+// ══════════════════════════════════════════════════
 //  TABLE
-// ══════════════════════════════════════
+// ══════════════════════════════════════════════════
 function updateTable(){
   const tb=document.getElementById('tbody');
-  if(!S.sched.length){tb.innerHTML=`<tr><td colspan="9"><div class="empty"><div class="ei">🗂</div><div class="es">Sin registros</div></div></td></tr>`;return;}
+  if(!S.sched.length){tb.innerHTML=`<tr><td colspan="10"><div class="empty"><div class="ei">🗂</div><div class="es">Sin registros</div></div></td></tr>`;return;}
   const q=(document.getElementById('srch')?.value||'').toLowerCase();
   let data=S.sched;
-  if(q) data=data.filter(v=>
-    v.dateStr.includes(q)||v.sede.toLowerCase().includes(q)||
-    v.resp.toLowerCase().includes(q)||v.status.toLowerCase().includes(q)||
-    v.hall.toLowerCase().includes(q)||v.obs.toLowerCase().includes(q));
-
+  if(q) data=data.filter(v=>v.dateStr.includes(q)||v.sede.toLowerCase().includes(q)||
+    (v.resp||'').toLowerCase().includes(q)||v.status.toLowerCase().includes(q)||
+    (v.nombre||'').toLowerCase().includes(q)||(v.calidad||'').toLowerCase().includes(q));
   tb.innerHTML=data.map(v=>{
-    const bc=v.status==='Realizada'?'bg':v.status==='Reprogramada'?'br':'by';
-    return `<tr onclick="openModal('${v.id}')">
-      <td><span style="font-family:'Courier New',Courier,monospace;font-size:12px">${v.dateStr}</span></td>
+    const bc=v.status==='Realizada'?'bg2c':v.status==='Reprogramada'?'brc':'byc';
+    return `<tr onclick="openM('${v.id}')">
+      <td><span style="font-family:monospace;font-size:12px">${v.dateStr}</span></td>
       <td>${v.dayName}</td><td><strong>${v.sede}</strong></td>
-      <td>${v.resp||'<span style="color:var(--text3)">—</span>'}</td>
+      <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.nombre||'—'}</td>
+      <td>${v.resp||'—'}</td>
       <td><span class="badge ${bc}">${v.status}</span></td>
-      <td style="max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.hall||'—'}</td>
+      <td>${v.calidad||'—'}</td>
+      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2)">${v.obs||'—'}</td>
       <td>${v.evs?.length?`<span style="color:var(--accent2)">📎${v.evs.length}</span>`:'—'}</td>
-      <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2)">${v.obs||'—'}</td>
-      <td onclick="event.stopPropagation()"><button class="btn bs sm" onclick="openModal('${v.id}')">✏️</button></td>
+      <td onclick="event.stopPropagation()"><button class="btn bs sm" onclick="openM('${v.id}')">✏️</button></td>
     </tr>`;
   }).join('');
 }
 function filterTable(){updateTable();}
 
-// ══════════════════════════════════════
+// ══════════════════════════════════════════════════
 //  DASHBOARD
-// ══════════════════════════════════════
+// ══════════════════════════════════════════════════
 function updateDash(){
-  const a=S.sched, done=a.filter(v=>v.status==='Realizada').length,
+  const a=S.sched,done=a.filter(v=>v.status==='Realizada').length,
     pend=a.filter(v=>v.status==='Pendiente').length,
     rep=a.filter(v=>v.status==='Reprogramada').length,
     pct=a.length?Math.round(done/a.length*100):0;
-
   document.getElementById('s-tot').textContent=a.length;
   document.getElementById('s-done').textContent=done;
-  document.getElementById('s-dpct').textContent=pct+'% cumplimiento';
+  document.getElementById('s-dp').textContent=pct+'%';
   document.getElementById('s-pend').textContent=pend;
   document.getElementById('s-rep').textContent=rep;
   document.getElementById('s-pct').textContent=pct+'%';
@@ -961,40 +859,37 @@ function updateDash(){
 
   const today=new Date().toISOString().split('T')[0];
   const nxt=a.find(v=>v.dateStr>=today&&v.status==='Pendiente');
-  if(nxt){ document.getElementById('s-next').textContent=nxt.date.toLocaleDateString('es-CO',{day:'2-digit',month:'short'}); document.getElementById('s-nsede').textContent=nxt.sede; }
+  if(nxt){document.getElementById('s-nxt').textContent=nxt.date.toLocaleDateString('es-CO',{day:'2-digit',month:'short'});document.getElementById('s-ns').textContent=nxt.sede;}
 
-  // Hallazgos chart
   const sh={};SEDES.forEach(s=>sh[s]=0);
-  a.forEach(v=>{if(v.hall) sh[v.sede]=(sh[v.sede]||0)+1;});
+  a.forEach(v=>{if(v.obs||v.calidad) sh[v.sede]=(sh[v.sede]||0)+1;});
   const mx=Math.max(...Object.values(sh),1);
-  document.getElementById('hall-chart').innerHTML=Object.entries(sh).sort((a,b)=>b[1]-a[1]).map(([s,n])=>`
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px">
-      <div style="font-size:12px;width:88px;color:var(--text2)">${s}</div>
+  document.getElementById('hchart').innerHTML=Object.entries(sh).sort((a,b)=>b[1]-a[1]).map(([s,n])=>`
+    <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px">
+      <div style="font-size:12px;width:82px;color:var(--text2)">${s}</div>
       <div style="flex:1;background:var(--border);border-radius:4px;height:7px;overflow:hidden">
         <div style="height:100%;background:var(--accent);width:${n?Math.round(n/mx*100):0}%;border-radius:4px;transition:width .5s"></div>
       </div>
-      <div style="font-size:11px;font-family:'Courier New',Courier,monospace;color:var(--text3);width:18px;text-align:right">${n}</div>
+      <div style="font-size:11px;font-family:monospace;color:var(--text3);width:16px;text-align:right">${n}</div>
     </div>`).join('');
 
-  // Upcoming
   const upc=a.filter(v=>v.dateStr>=today).slice(0,5);
   document.getElementById('upcoming').innerHTML=upc.length?upc.map(v=>`
-    <div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openModal('${v.id}')">
-      <div style="font-family:'Courier New',Courier,monospace;font-size:11px;color:var(--text3);width:78px">${v.dateStr}</div>
+    <div style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openM('${v.id}')">
+      <div style="font-family:monospace;font-size:11px;color:var(--text3);width:76px">${v.dateStr}</div>
       <div style="flex:1"><div style="font-size:13px;font-weight:600">${v.sede}</div><div style="font-size:11px;color:var(--text3)">${v.dayName}</div></div>
-      <span class="badge by">${v.status}</span>
+      <span class="badge byc">Pendiente</span>
     </div>`).join(''):`<div style="color:var(--text3);font-size:13px">Sin próximas visitas</div>`;
 
-  // Activity
   const rec=[...a].sort((a,b)=>b.dateStr.localeCompare(a.dateStr)).slice(0,5);
   document.getElementById('activity').innerHTML=rec.length?rec.map(v=>`
-    <div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--border)">
-      <div style="width:28px;height:28px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:13px">
+    <div style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--border)">
+      <div style="width:27px;height:27px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:13px">
         ${v.status==='Realizada'?'✅':v.status==='Reprogramada'?'🔄':'⏳'}
       </div>
       <div style="flex:1">
         <div style="font-size:13px;font-weight:500">${v.sede} · ${v.dateStr}</div>
-        <div style="font-size:11px;color:var(--text3)">${v.status}${v.resp?' · '+v.resp:''}</div>
+        <div style="font-size:11px;color:var(--text3)">${v.status}${v.resp?' · '+v.resp:''}${v.nombre?' · '+v.nombre:''}</div>
       </div>
     </div>`).join(''):`<div style="color:var(--text3);font-size:13px">Sin actividad</div>`;
 
@@ -1002,26 +897,29 @@ function updateDash(){
 }
 
 function updateBadges(){
-  document.getElementById('nb-cron').textContent=S.sched.length;
-  document.getElementById('nb-reg').textContent=S.sched.filter(v=>v.status==='Realizada').length;
+  document.getElementById('nb-c').textContent=S.sched.length;
+  document.getElementById('nb-r').textContent=S.sched.filter(v=>v.status==='Realizada').length;
 }
 
-// ══════════════════════════════════════
+// ══════════════════════════════════════════════════
 //  MODAL
-// ══════════════════════════════════════
-function openModal(id){
+// ══════════════════════════════════════════════════
+function openM(id){
   const v=S.sched.find(s=>s.id===id);
   if(!v) return;
   S.curId=id;
 
-  // Load from sheet if available
+  // Enrich from sheet if possible
   const row=findRow(v.dateStr);
   if(row){
-    v.hall=v.hall||getVal(row,'hall');
-    v.obs=v.obs||getVal(row,'obs');
-    v.resp=v.resp||getVal(row,'resp');
-    v.res=v.res||getVal(row,'res');
-    v.com=v.com||getVal(row,'com');
+    v.nombre  = v.nombre  || gv(row,'nombre');
+    v.cedula  = v.cedula  || gv(row,'cedula');
+    v.hrecurso= v.hrecurso|| gv(row,'hrecurso');
+    v.pres    = v.pres    || gv(row,'pres1');
+    v.calidad = v.calidad || gv(row,'calidad');
+    v.obs     = v.obs     || gv(row,'obs');
+    v.docs    = v.docs    || gv(row,'docs');
+    v.video   = v.video   || gv(row,'video');
   }
 
   document.getElementById('mtitle').textContent=`${v.dayName} ${v.dateStr} · ${v.sede}`;
@@ -1031,35 +929,36 @@ function openModal(id){
   document.getElementById('m-salida').value=v.salida||'';
   document.getElementById('m-resp').value=v.resp||'';
   document.getElementById('m-estado').value=v.status||'Pendiente';
-  document.getElementById('m-hall').value=v.hall||'';
+  document.getElementById('m-nombre').value=v.nombre||'';
+  document.getElementById('m-calidad').value=v.calidad||'';
+  document.getElementById('m-pres').value=v.pres||'';
   document.getElementById('m-obs').value=v.obs||'';
-  document.getElementById('m-res').value=v.res||'';
-  document.getElementById('m-com').value=v.com||'';
-
-  document.getElementById('visitModal').classList.add('on');
+  document.getElementById('m-docs').value=v.docs||'';
+  document.getElementById('vmodal').classList.add('on');
 }
 
-function closeM(id){ document.getElementById(id).classList.remove('on'); }
+function closeM(id){document.getElementById(id).classList.remove('on');}
 
 function saveModal(){
   const v=S.sched.find(s=>s.id===S.curId);
   if(!v) return;
-  v.llegada=document.getElementById('m-llegada').value;
-  v.salida=document.getElementById('m-salida').value;
-  v.resp=document.getElementById('m-resp').value;
-  v.status=document.getElementById('m-estado').value;
-  v.hall=document.getElementById('m-hall').value;
-  v.obs=document.getElementById('m-obs').value;
-  v.res=document.getElementById('m-res').value;
-  v.com=document.getElementById('m-com').value;
-  saveLocal(); renderSched(); updateTable(); updateDash(); closeM('visitModal');
+  v.llegada =document.getElementById('m-llegada').value;
+  v.salida  =document.getElementById('m-salida').value;
+  v.resp    =document.getElementById('m-resp').value;
+  v.status  =document.getElementById('m-estado').value;
+  v.nombre  =document.getElementById('m-nombre').value;
+  v.calidad =document.getElementById('m-calidad').value;
+  v.pres    =document.getElementById('m-pres').value;
+  v.obs     =document.getElementById('m-obs').value;
+  v.docs    =document.getElementById('m-docs').value;
+  saveLocal();renderAll();closeM('vmodal');
   toast('Visita guardada','success');
 }
 
-// ══════════════════════════════════════
+// ══════════════════════════════════════════════════
 //  AUDITORÍA DEL DÍA
-// ══════════════════════════════════════
-function loadTodayAudit(){
+// ══════════════════════════════════════════════════
+function loadToday(){
   const today=new Date().toISOString().split('T')[0];
   const v=S.sched.find(x=>x.dateStr===today);
   const row=findRow(today);
@@ -1074,35 +973,38 @@ function loadTodayAudit(){
   }
 
   const src=row||{};
-  document.getElementById('f-obs').value=(v?.obs)||getVal(src,'obs')||'';
-  document.getElementById('f-hall').value=(v?.hall)||getVal(src,'hall')||'';
-  document.getElementById('f-res').value=(v?.res)||getVal(src,'res')||'';
-  document.getElementById('f-com').value=(v?.com)||getVal(src,'com')||'';
+  document.getElementById('f-nombre').value   =(v?.nombre)  ||gv(src,'nombre')  ||'';
+  document.getElementById('f-cedula').value   =(v?.cedula)  ||gv(src,'cedula')  ||'';
+  document.getElementById('f-hrecurso').value =(v?.hrecurso)||gv(src,'hrecurso')||'';
+  document.getElementById('f-pres').value     =(v?.pres)    ||gv(src,'pres1')   ||'';
+  document.getElementById('f-calidad').value  =(v?.calidad) ||gv(src,'calidad') ||'';
+  document.getElementById('f-obs').value      =(v?.obs)     ||gv(src,'obs')     ||'';
+  document.getElementById('f-docs').value     =(v?.docs)    ||gv(src,'docs')    ||'';
+  document.getElementById('f-video').value    =(v?.video)   ||gv(src,'video')   ||'';
 
-  // Status panel
-  if(!v&&!row){
-    document.getElementById('aud-status').innerHTML='<div style="color:var(--yellow);font-size:13px">⚠️ Sin visita programada hoy. Puede registrar manualmente.</div>';
-  } else {
-    const st=v?.status||'Pendiente';
-    const bc=st==='Realizada'?'bg':st==='Reprogramada'?'br':'by';
-    document.getElementById('aud-status').innerHTML=`
-      <div style="display:flex;flex-direction:column;gap:9px">
-        <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;color:var(--text2)">Estado</span><span class="badge ${bc}">${st}</span></div>
-        <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;color:var(--text2)">Sede</span><strong style="font-size:13px">${v?.sede||'—'}</strong></div>
-        <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;color:var(--text2)">Sheets</span><span style="color:${row?'var(--green)':'var(--text3)';font-size:13px}">${row?'✅ Datos cargados':'Sin datos Sheets'}</span></div>
-      </div>`;
-  }
+  const st=v?.status||'Pendiente';
+  const bc=st==='Realizada'?'bg2c':st==='Reprogramada'?'brc':'byc';
+  document.getElementById('astatus').innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;color:var(--text2)">Estado</span><span class="badge ${bc}">${st}</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;color:var(--text2)">Sede</span><strong>${v?.sede||'—'}</strong></div>
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;color:var(--text2)">Datos Sheets</span><span style="color:${row?'var(--green)':'var(--text3)'}">${row?'✅ Cargados':'Sin coincidencia hoy'}</span></div>
+      ${row?`<div style="font-size:11px;color:var(--text3)">Auditado: ${gv(row,'nombre')||'—'} · ${gv(row,'calidad')||''}</div>`:''}
+    </div>`;
 
-  // Sede history
   const sede=v?.sede||document.getElementById('f-sede').value;
   if(sede){
     const hist=S.sched.filter(x=>x.sede===sede&&x.dateStr<today&&x.status!=='Pendiente').slice(-3).reverse();
-    document.getElementById('sede-hist').innerHTML=hist.length?
-      hist.map(x=>`<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:12px"><div style="color:var(--text2)">${x.dateStr} · ${x.dayName}</div><div style="color:var(--text3);margin-top:2px">${x.status}${x.resp?' · '+x.resp:''}</div></div>`).join(''):
+    document.getElementById('shist').innerHTML=hist.length?
+      hist.map(x=>`<div style="padding:5px 0;border-bottom:1px solid var(--border);font-size:12px">
+        <div style="color:var(--text2)">${x.dateStr} · ${x.dayName}</div>
+        <div style="color:var(--text3);margin-top:1px">${x.status}${x.resp?' · '+x.resp:''}${x.nombre?' · '+x.nombre:''}</div>
+      </div>`).join(''):
       '<div style="color:var(--text3);font-size:12px">Sin historial previo</div>';
   }
 
   if(v?.evs?.length) renderEvs(v.evs);
+  if(!row&&S.rows.length) toast(`Hoy (${today}) no tiene registro en Sheets. Los datos se cargarán cuando existan.`,'info');
 }
 
 function saveAudit(){
@@ -1111,24 +1013,25 @@ function saveAudit(){
   if(!v){
     const sede=document.getElementById('f-sede').value;
     if(!sede){toast('Seleccione una sede','warning');return;}
-    v=mkVisit(new Date(),sede); S.sched.push(v);
+    v=mkV(new Date(),sede);S.sched.push(v);
   }
-  v.sede=document.getElementById('f-sede').value;
-  v.llegada=document.getElementById('f-llegada').value;
-  v.salida=document.getElementById('f-salida').value;
-  v.resp=document.getElementById('f-resp').value;
-  v.status=document.getElementById('f-estado').value;
-  v.obs=document.getElementById('f-obs').value;
-  v.hall=document.getElementById('f-hall').value;
-  v.res=document.getElementById('f-res').value;
-  v.com=document.getElementById('f-com').value;
-  saveLocal(); renderSched(); updateTable(); updateDash();
+  v.sede    =document.getElementById('f-sede').value;
+  v.llegada =document.getElementById('f-llegada').value;
+  v.salida  =document.getElementById('f-salida').value;
+  v.resp    =document.getElementById('f-resp').value;
+  v.status  =document.getElementById('f-estado').value;
+  v.nombre  =document.getElementById('f-nombre').value;
+  v.calidad =document.getElementById('f-calidad').value;
+  v.obs     =document.getElementById('f-obs').value;
+  v.docs    =document.getElementById('f-docs').value;
+  v.pres    =document.getElementById('f-pres').value;
+  saveLocal();renderAll();
   toast('Auditoría guardada ✅','success');
 }
 
-// ══════════════════════════════════════
+// ══════════════════════════════════════════════════
 //  EVIDENCES
-// ══════════════════════════════════════
+// ══════════════════════════════════════════════════
 function handleFiles(ev){
   const today=new Date().toISOString().split('T')[0];
   let v=S.sched.find(x=>x.dateStr===today)||S.sched.find(x=>x.id===S.curId);
@@ -1136,13 +1039,8 @@ function handleFiles(ev){
     if(file.size>10_000_000){toast(`"${file.name}" supera 10 MB`,'warning');return;}
     const r=new FileReader();
     r.onload=e=>{
-      const ev2={id:'ev_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),name:file.name,type:file.type,data:e.target.result,date:new Date().toLocaleDateString('es-CO')};
-      if(v){
-        if(!v.evs) v.evs=[];
-        v.evs.push(ev2);
-        renderEvs(v.evs); updateAllEvs(); saveLocal();
-        toast(`Evidencia "${file.name}" cargada`,'success');
-      }
+      const ev2={id:'ev_'+Date.now(),name:file.name,type:file.type,data:e.target.result,date:new Date().toLocaleDateString('es-CO')};
+      if(v){if(!v.evs)v.evs=[];v.evs.push(ev2);renderEvs(v.evs);updateAllEvs();saveLocal();toast(`"${file.name}" cargada`,'success');}
     };
     r.readAsDataURL(file);
   });
@@ -1153,10 +1051,10 @@ function renderEvs(evs){
   const l=document.getElementById('evList');
   if(!evs?.length){l.innerHTML='';return;}
   l.innerHTML=evs.map(e=>`
-    <div class="evitem">
-      ${e.type?.startsWith('image/')?`<img src="${e.data}" class="evimg" alt="${e.name}">`:`<div class="evpdf">📄</div>`}
-      <div class="evname">${e.name}</div><div class="evdate">${e.date}</div>
-      <button class="evdel" onclick="delEv('${e.id}')">✕</button>
+    <div class="ei2">
+      ${e.type?.startsWith('image/')?`<img src="${e.data}" class="eimg" alt="${e.name}">`:`<div class="epdf">📄</div>`}
+      <div class="en">${e.name}</div><div class="ed">${e.date}</div>
+      <button class="edel" onclick="delEv('${e.id}')">✕</button>
     </div>`).join('');
 }
 
@@ -1165,37 +1063,53 @@ function delEv(id){
   const today=new Date().toISOString().split('T')[0];
   const v=S.sched.find(x=>x.dateStr===today)||S.sched.find(x=>x.id===S.curId);
   if(v) renderEvs(v.evs);
-  updateAllEvs(); saveLocal(); toast('Evidencia eliminada','info');
+  updateAllEvs();saveLocal();toast('Evidencia eliminada','info');
 }
 
 function updateAllEvs(){
   const all=[];
   S.sched.forEach(v=>{if(v.evs?.length)v.evs.forEach(e=>all.push({...e,vDate:v.dateStr,sede:v.sede}));});
-  const c=document.getElementById('allEv');
-  c.innerHTML=all.length?`<div style="margin-bottom:14px;font-size:13px;color:var(--text2)">${all.length} evidencia(s) en total</div>
-    <div class="evlist">${all.map(e=>`<div class="evitem">${e.type?.startsWith('image/')?`<img src="${e.data}" class="evimg">`:`<div class="evpdf">📄</div>`}<div class="evname">${e.name}</div><div class="evdate">${e.vDate} · ${e.sede}</div></div>`).join('')}</div>`
-    :`<div class="empty"><div class="ei">📎</div><div class="et">Sin evidencias</div></div>`;
+  document.getElementById('allEv').innerHTML=all.length?
+    `<div style="margin-bottom:13px;font-size:13px;color:var(--text2)">${all.length} evidencia(s) en total</div>
+    <div class="el">${all.map(e=>`<div class="ei2">${e.type?.startsWith('image/')?`<img src="${e.data}" class="eimg">`:`<div class="epdf">📄</div>`}<div class="en">${e.name}</div><div class="ed">${e.vDate} · ${e.sede}</div></div>`).join('')}</div>`:
+    `<div class="empty"><div class="ei">📎</div><div class="et">Sin evidencias</div></div>`;
 }
 
-// ══════════════════════════════════════
+// ══════════════════════════════════════════════════
+//  PREVIEW
+// ══════════════════════════════════════════════════
+function showPreview(j){
+  if(!j?.rows?.length) return;
+  const card=document.getElementById('prev-card');
+  card.style.display='block';
+  const hdrs=j.headers||Object.keys(j.rows[0]);
+  const sample=j.rows.slice(0,4);
+  let h=`<div style="font-size:12px;color:var(--text3);margin-bottom:9px">
+    Mostrando ${sample.length} de ${j.total} filas · 
+    Columna fecha detectada: <strong style="color:var(--accent2)">${COLS.fecha||'?'}</strong> · 
+    Nombre: <strong style="color:var(--accent2)">${COLS.nombre||'?'}</strong>
+  </div>`;
+  h+=`<div class="tw"><table><thead><tr>${hdrs.slice(0,8).map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
+  sample.forEach(r=>{h+=`<tr>${hdrs.slice(0,8).map(k=>`<td style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r[k]||''}</td>`).join('')}</tr>`;});
+  h+=`</tbody></table></div>`;
+  document.getElementById('prev-data').innerHTML=h;
+}
+
+// ══════════════════════════════════════════════════
 //  EXPORT
-// ══════════════════════════════════════
-function exportExcel(){
+// ══════════════════════════════════════════════════
+function exportCSV(){
   if(!S.sched.length){toast('Sin datos','warning');return;}
-  try{
-    const headers=['Fecha','Día','Mes','Sede','Estado','Responsable','Hora Llegada','Hora Salida','Hallazgos','Observaciones','Resultado','Comentarios','Evidencias'];
-    const esc=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
-    const rows=S.sched.map(v=>[v.dateStr,v.dayName,MESES[v.monthIdx],v.sede,v.status,v.resp,v.llegada,v.salida,v.hall,v.obs,v.res,v.com,(v.evs||[]).length].map(esc).join(','));
-    // BOM for Excel UTF-8 detection
-    const csv='\uFEFF'+headers.map(esc).join(',')+'\n'+rows.join('\n');
-    const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download=`Compensar_Visitas_${new Date().toISOString().slice(0,10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-    toast('Archivo CSV exportado (ábralo con Excel)','success');
-  }catch(e){toast('Error exportando: '+e.message,'error');}
+  const esc=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const hdrs=['Fecha','Día','Mes','Sede','Estado','Responsable','Nombre Auditado','Cédula','Hora Llegada','Hora Salida','Calidad Atención','Observaciones','Documentos Pendientes','Evidencias'];
+  const rows=S.sched.map(v=>[v.dateStr,v.dayName,MESES[v.monthIdx],v.sede,v.status,v.resp,v.nombre,v.cedula,v.llegada,v.salida,v.calidad,v.obs,v.docs,(v.evs||[]).length].map(esc).join(','));
+  const csv='\uFEFF'+hdrs.map(esc).join(',')+'\n'+rows.join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=`Compensar_Visitas_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('CSV exportado (ábralo con Excel)','success');
 }
 
 function genPDF(){
@@ -1203,4 +1117,75 @@ function genPDF(){
   const done=S.sched.filter(v=>v.status==='Realizada').length;
   const pct=S.sched.length?Math.round(done/S.sched.length*100):0;
   const today=new Date().toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'});
-  const rows=S.sched.map(v=>`<tr><td>${v.dateStr}</td><td>${v.dayName}</td><td>${
+  const rows=S.sched.map(v=>`<tr><td>${v.dateStr}</td><td>${v.dayName}</td><td>${v.sede}</td><td>${v.nombre||'—'}</td><td>${v.resp||'—'}</td><td style="color:${v.status==='Realizada'?'#22c55e':v.status==='Reprogramada'?'#ef4444':'#f59e0b'}">${v.status}</td><td>${v.calidad||'—'}</td><td>${(v.evs||[]).length}</td></tr>`).join('');
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Compensar - Visitas</title>
+    <style>body{font-family:Arial,sans-serif;color:#1a1a2e;padding:22px;font-size:12px}h1{font-size:18px;color:#1e3a5f}
+    .sub{color:#666;font-size:11px;margin-bottom:16px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:18px}
+    .stat{background:#f5f7fa;border-radius:7px;padding:12px;text-align:center}.sv{font-size:20px;font-weight:700;color:#1e3a5f}.sl{font-size:10px;color:#888;margin-top:2px}
+    table{width:100%;border-collapse:collapse;font-size:11px}th{background:#1e3a5f;color:#fff;padding:7px 9px;text-align:left}
+    td{padding:6px 9px;border-bottom:1px solid #e5e7eb}tr:nth-child(even) td{background:#f9fafb}
+    </style></head><body>
+    <h1>Compensar · Visitas Operativas 2025</h1>
+    <div class="sub">Generado ${today} · Total ${S.sched.length} visitas</div>
+    <div class="stats">
+      <div class="stat"><div class="sv">${S.sched.length}</div><div class="sl">TOTAL</div></div>
+      <div class="stat"><div class="sv" style="color:#22c55e">${done}</div><div class="sl">REALIZADAS</div></div>
+      <div class="stat"><div class="sv" style="color:#f59e0b">${S.sched.filter(v=>v.status==='Pendiente').length}</div><div class="sl">PENDIENTES</div></div>
+      <div class="stat"><div class="sv">${pct}%</div><div class="sl">CUMPLIMIENTO</div></div>
+    </div>
+    <table><thead><tr><th>Fecha</th><th>Día</th><th>Sede</th><th>Auditado</th><th>Responsable</th><th>Estado</th><th>Calidad</th><th>Evid.</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+    <div style="margin-top:14px;font-size:10px;color:#999;text-align:center">Compensar · ${today}</div>
+    <script>window.onload=()=>window.print()<\/script></body></html>`);
+  win.document.close();
+  toast('PDF listo (Ctrl+P)','info');
+}
+
+// ══════════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════════
+function showPg(name){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.getElementById('pg-'+name).classList.add('on');
+  document.querySelectorAll('.nav').forEach(n=>n.classList.remove('on'));
+  const nav=document.getElementById('nav-'+name);
+  if(nav) nav.classList.add('on');
+  const map={auditoria:loadToday,registros:updateTable,evidencias:updateAllEvs,cronograma:renderSched,dashboard:updateDash};
+  if(map[name]) map[name]();
+}
+
+// ══════════════════════════════════════════════════
+//  PERSISTENCE
+// ══════════════════════════════════════════════════
+function saveLocal(){
+  try{
+    localStorage.setItem('comp_s',JSON.stringify(S.sched.map(v=>({...v,date:v.date.toISOString()}))));
+  }catch(e){
+    try{localStorage.setItem('comp_s',JSON.stringify(S.sched.map(v=>({...v,date:v.date.toISOString(),evs:[]}))));}catch(e2){}
+  }
+}
+function loadLocal(){
+  try{
+    const d=localStorage.getItem('comp_s');
+    if(d){S.sched=JSON.parse(d).map(v=>({...v,date:new Date(v.date),evs:v.evs||[]}));renderAll();updateBadges();}
+  }catch(e){}
+}
+
+// ══════════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════════
+function toast(msg,type='info'){
+  const ic={success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'};
+  const cl={success:'var(--green)',error:'var(--red)',warning:'var(--yellow)',info:'var(--accent2)'};
+  const t=document.createElement('div');
+  t.className='toast';
+  t.innerHTML=`<span style="color:${cl[type]||cl.info}">${ic[type]||'ℹ️'}</span><span>${msg}</span>`;
+  document.getElementById('toasts').appendChild(t);
+  setTimeout(()=>{t.style.cssText+='opacity:0;transform:translateX(14px);transition:all .3s';setTimeout(()=>t.remove(),350);},5000);
+}
+
+document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('on');}));
+</script>
+</body>
+</html>
