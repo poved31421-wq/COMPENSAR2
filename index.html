@@ -1,0 +1,2268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compensar · Gestión de Visitas Operativas</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg2: #161b22;
+    --bg3: #1c2230;
+    --border: #2a3348;
+    --border2: #374161;
+    --text: #e8edf5;
+    --text2: #8b95a8;
+    --text3: #5a6478;
+    --accent: #2563eb;
+    --accent2: #3b82f6;
+    --accent-glow: rgba(37,99,235,0.18);
+    --green: #22c55e;
+    --green-bg: rgba(34,197,94,0.1);
+    --yellow: #f59e0b;
+    --yellow-bg: rgba(245,158,11,0.1);
+    --red: #ef4444;
+    --red-bg: rgba(239,68,68,0.1);
+    --orange: #f97316;
+    --orange-bg: rgba(249,115,22,0.1);
+    --purple: #a855f7;
+    --purple-bg: rgba(168,85,247,0.1);
+    --card-shadow: 0 1px 3px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.25);
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .header-logo {
+    width: 36px;
+    height: 36px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -1px;
+  }
+  .header-title {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+  }
+  .header-sub {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sync-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    padding: 4px 10px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+  }
+  .sync-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+  .sync-dot.disconnected { background: var(--red); animation: none; }
+  .sync-dot.loading { background: var(--yellow); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* ── LAYOUT ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: calc(100vh - 60px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    padding: 20px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .sidebar-section {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 8px 10px 4px;
+    margin-top: 8px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--text2);
+    font-size: 13.5px;
+    font-weight: 500;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+  }
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+  .nav-item.active {
+    background: var(--accent-glow);
+    color: var(--accent2);
+    border-color: rgba(37,99,235,0.3);
+  }
+  .nav-icon { font-size: 15px; width: 18px; text-align: center; }
+  .nav-badge {
+    margin-left: auto;
+    background: var(--accent);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* ── MAIN ── */
+  .main {
+    padding: 28px 32px;
+    overflow-y: auto;
+    max-height: calc(100vh - 60px);
+  }
+
+  /* ── PAGE SECTIONS ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .page-header {
+    margin-bottom: 24px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  .page-desc {
+    font-size: 13px;
+    color: var(--text2);
+    margin-top: 3px;
+  }
+  .action-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: rgba(255,255,255,0.1);
+  }
+  .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37,99,235,0.4); }
+  .btn-secondary {
+    background: var(--bg3);
+    color: var(--text);
+    border-color: var(--border);
+  }
+  .btn-secondary:hover { background: var(--border); }
+  .btn-success {
+    background: var(--green-bg);
+    color: var(--green);
+    border-color: rgba(34,197,94,0.3);
+  }
+  .btn-success:hover { background: rgba(34,197,94,0.2); }
+  .btn-warning {
+    background: var(--yellow-bg);
+    color: var(--yellow);
+    border-color: rgba(245,158,11,0.3);
+  }
+  .btn-sm { padding: 5px 11px; font-size: 12px; }
+  .btn-icon { padding: 7px 10px; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--card-shadow);
+  }
+  .card-title {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 12px;
+  }
+
+  /* ── DASHBOARD STATS ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .stat-card:hover { border-color: var(--border2); }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .stat-card.blue::before { background: var(--accent); }
+  .stat-card.green::before { background: var(--green); }
+  .stat-card.yellow::before { background: var(--yellow); }
+  .stat-card.red::before { background: var(--red); }
+  .stat-card.purple::before { background: var(--purple); }
+  .stat-card.orange::before { background: var(--orange); }
+  .stat-label {
+    font-size: 11px;
+    color: var(--text3);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    font-family: 'DM Mono', monospace;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-card.blue .stat-value { color: var(--accent2); }
+  .stat-card.green .stat-value { color: var(--green); }
+  .stat-card.yellow .stat-value { color: var(--yellow); }
+  .stat-card.red .stat-value { color: var(--red); }
+  .stat-card.purple .stat-value { color: var(--purple); }
+  .stat-card.orange .stat-value { color: var(--orange); }
+  .stat-sub { font-size: 11px; color: var(--text3); }
+
+  /* ── TABLE ── */
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead { background: var(--bg3); }
+  th {
+    padding: 11px 14px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg3); }
+  tbody tr { cursor: pointer; transition: background 0.1s; }
+
+  /* ── BADGES ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge-green { background: var(--green-bg); color: var(--green); border: 1px solid rgba(34,197,94,0.2); }
+  .badge-yellow { background: var(--yellow-bg); color: var(--yellow); border: 1px solid rgba(245,158,11,0.2); }
+  .badge-red { background: var(--red-bg); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
+  .badge-blue { background: var(--accent-glow); color: var(--accent2); border: 1px solid rgba(37,99,235,0.2); }
+  .badge::before { content: '●'; font-size: 7px; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 14px;
+    width: 100%;
+    max-width: 760px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    animation: modalIn 0.2s ease;
+  }
+  @keyframes modalIn { from{opacity:0;transform:scale(0.96) translateY(8px)} to{opacity:1;transform:none} }
+  .modal-header {
+    padding: 20px 24px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: var(--bg2);
+    z-index: 1;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-title {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .modal-body { padding: 24px; }
+  .modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    background: var(--bg2);
+    position: sticky;
+    bottom: 0;
+  }
+  .close-btn {
+    background: none;
+    border: none;
+    color: var(--text3);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .close-btn:hover { color: var(--text); background: var(--bg3); }
+
+  /* ── FORM ── */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+  input, select, textarea {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    padding: 9px 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13.5px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    width: 100%;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  textarea { resize: vertical; min-height: 80px; }
+  select option { background: var(--bg2); }
+  .field-auto {
+    background: rgba(37,99,235,0.07);
+    border-color: rgba(37,99,235,0.25);
+    color: var(--text2);
+  }
+  .field-auto-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .field-auto-label::after {
+    content: 'AUTO';
+    font-size: 9px;
+    background: var(--accent-glow);
+    color: var(--accent2);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── EVIDENCE ── */
+  .evidence-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--bg3);
+  }
+  .evidence-zone:hover {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+  }
+  .evidence-icon { font-size: 32px; margin-bottom: 8px; }
+  .evidence-text { font-size: 13px; color: var(--text2); }
+  .evidence-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+  .evidence-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .evidence-item {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: relative;
+    overflow: hidden;
+  }
+  .evidence-preview {
+    width: 100%;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 4px;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+  }
+  .evidence-name { font-size: 11px; color: var(--text2); word-break: break-all; }
+  .evidence-date { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; }
+  .evidence-del {
+    position: absolute;
+    top: 4px; right: 4px;
+    background: var(--red-bg);
+    border: none;
+    color: var(--red);
+    border-radius: 4px;
+    padding: 2px 5px;
+    font-size: 10px;
+    cursor: pointer;
+    display: none;
+  }
+  .evidence-item:hover .evidence-del { display: block; }
+
+  /* ── SCHEDULE ── */
+  .schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .schedule-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.18s;
+    position: relative;
+    overflow: hidden;
+  }
+  .schedule-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(37,99,235,0.15);
+  }
+  .schedule-card.today {
+    border-color: var(--green);
+    background: var(--green-bg);
+  }
+  .schedule-card.today::after {
+    content: 'HOY';
+    position: absolute;
+    top: 8px; right: 8px;
+    background: var(--green);
+    color: #000;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+    letter-spacing: 0.5px;
+  }
+  .schedule-card.past { opacity: 0.55; }
+  .sched-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    margin-bottom: 6px;
+  }
+  .sched-day {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 2px;
+  }
+  .sched-sede {
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 10px;
+  }
+  .sched-status { }
+
+  /* ── PROGRESS ── */
+  .progress-bar {
+    background: var(--border);
+    border-radius: 10px;
+    height: 6px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    transition: width 0.5s ease;
+  }
+
+  /* ── TOAST ── */
+  #toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .toast {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    min-width: 260px;
+    max-width: 360px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: toastIn 0.3s ease;
+  }
+  @keyframes toastIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:none} }
+  .toast.success .toast-icon { color: var(--green); }
+  .toast.error .toast-icon { color: var(--red); }
+  .toast.info .toast-icon { color: var(--accent2); }
+  .toast.warning .toast-icon { color: var(--yellow); }
+
+  /* ── LOADER ── */
+  .loader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    gap: 16px;
+    color: var(--text3);
+    font-size: 13px;
+  }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── MONTH FILTER ── */
+  .month-filter {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .month-btn {
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    color: var(--text2);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+  }
+  .month-btn:hover { border-color: var(--border2); color: var(--text); }
+  .month-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+
+  /* ── SEDE CHIPS ── */
+  .sede-filter {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .sede-chip {
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text2);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .sede-chip.active { background: var(--accent-glow); color: var(--accent2); border-color: rgba(37,99,235,0.3); }
+
+  /* ── CONFIG PAGE ── */
+  .config-section {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .config-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .api-key-field {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 20px 0;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 10px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+  /* ── EMPTY STATE ── */
+  .empty {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--text3);
+  }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-title { font-size: 15px; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
+  .empty-sub { font-size: 13px; }
+
+  /* ── CHART ── */
+  .mini-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 60px;
+    margin-top: 10px;
+  }
+  .mini-bar {
+    flex: 1;
+    background: var(--accent-glow);
+    border-radius: 3px 3px 0 0;
+    border-bottom: 2px solid var(--accent);
+    transition: height 0.5s ease;
+    cursor: pointer;
+    position: relative;
+  }
+  .mini-bar:hover { background: rgba(37,99,235,0.25); }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .main { padding: 16px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .section-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 1100px) {
+    .section-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-brand">
+    <div class="header-logo">CO</div>
+    <div>
+      <div class="header-title">Compensar · Visitas Operativas</div>
+      <div class="header-sub">Proyecto Cronograma 2025</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <div class="sync-status" id="syncStatus">
+      <div class="sync-dot loading" id="syncDot"></div>
+      <span id="syncText">Conectando...</span>
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="syncSheets()">⟳ Sincronizar</button>
+  </div>
+</header>
+
+<!-- LAYOUT -->
+<div class="layout">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="nav-item active" onclick="showPage('dashboard')">
+      <span class="nav-icon">◉</span> Dashboard
+    </div>
+    <div class="nav-item" onclick="showPage('cronograma')">
+      <span class="nav-icon">📅</span> Cronograma
+      <span class="nav-badge" id="badge-cronograma">0</span>
+    </div>
+    <div class="nav-item" onclick="showPage('auditoria')">
+      <span class="nav-icon">📋</span> Auditoría del Día
+    </div>
+    <div class="nav-item" onclick="showPage('registros')">
+      <span class="nav-icon">🗂</span> Registros
+      <span class="nav-badge" id="badge-registros">0</span>
+    </div>
+    <div class="nav-item" onclick="showPage('evidencias')">
+      <span class="nav-icon">📎</span> Evidencias
+    </div>
+    <div class="sidebar-section">Sedes</div>
+    <div class="nav-item" onclick="filterBySede('Calle 26')"><span class="nav-icon">🔵</span> Calle 26</div>
+    <div class="nav-item" onclick="filterBySede('Avenida 68')"><span class="nav-icon">🟢</span> Avenida 68</div>
+    <div class="nav-item" onclick="filterBySede('Consorcio')"><span class="nav-icon">🟡</span> Consorcio</div>
+    <div class="nav-item" onclick="filterBySede('Calle 94')"><span class="nav-icon">🟠</span> Calle 94</div>
+    <div class="sidebar-section">Herramientas</div>
+    <div class="nav-item" onclick="exportExcel()"><span class="nav-icon">📊</span> Exportar Excel</div>
+    <div class="nav-item" onclick="generatePDF()"><span class="nav-icon">📄</span> Generar PDF</div>
+    <div class="nav-item" onclick="showPage('config')"><span class="nav-icon">⚙</span> Configuración</div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- ═══ DASHBOARD ═══ -->
+    <section class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Dashboard</div>
+          <div class="page-desc">Resumen general del cronograma de visitas operativas</div>
+        </div>
+        <div class="action-bar">
+          <button class="btn btn-primary" onclick="generateSchedule()">⚡ Generar Cronograma</button>
+          <button class="btn btn-success" onclick="showPage('auditoria')">📋 Auditoría Hoy</button>
+        </div>
+      </div>
+
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card blue">
+          <div class="stat-label">Total Auditorías</div>
+          <div class="stat-value" id="stat-total">0</div>
+          <div class="stat-sub">Mayo – Diciembre 2025</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">Realizadas</div>
+          <div class="stat-value" id="stat-done">0</div>
+          <div class="stat-sub" id="stat-done-pct">0% cumplimiento</div>
+        </div>
+        <div class="stat-card yellow">
+          <div class="stat-label">Pendientes</div>
+          <div class="stat-value" id="stat-pending">0</div>
+          <div class="stat-sub">Por realizar</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">Reprogramadas</div>
+          <div class="stat-value" id="stat-reprog">0</div>
+          <div class="stat-sub">Reagendadas</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-label">Cumplimiento</div>
+          <div class="stat-value" id="stat-pct">0%</div>
+          <div class="progress-bar"><div class="progress-fill" id="stat-bar" style="width:0%"></div></div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-label">Próxima Visita</div>
+          <div class="stat-value" id="stat-next" style="font-size:16px;padding-top:4px">—</div>
+          <div class="stat-sub" id="stat-next-sede">—</div>
+        </div>
+      </div>
+
+      <div class="section-row">
+        <div class="card">
+          <div class="card-title">📍 Sede con Más Hallazgos</div>
+          <div id="top-sede-chart">
+            <div class="empty"><div class="empty-icon">📊</div><div class="empty-sub">Sin datos aún</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">📅 Próximas Visitas</div>
+          <div id="upcoming-list">
+            <div class="empty"><div class="empty-icon">📅</div><div class="empty-sub">Genere el cronograma primero</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🔄 Actividad Reciente</div>
+        <div id="activity-log">
+          <div class="empty"><div class="empty-icon">🕐</div><div class="empty-sub">Sin actividad registrada</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ CRONOGRAMA ═══ -->
+    <section class="page" id="page-cronograma">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Cronograma de Visitas</div>
+          <div class="page-desc">Mayo – Diciembre 2025</div>
+        </div>
+        <div class="action-bar">
+          <button class="btn btn-primary" onclick="generateSchedule()">⚡ Generar / Regenerar</button>
+          <button class="btn btn-secondary" onclick="exportExcel()">📊 Exportar</button>
+        </div>
+      </div>
+
+      <div class="month-filter" id="monthFilter"></div>
+      <div class="sede-filter" id="sedeFilter">
+        <button class="sede-chip active" data-sede="all" onclick="filterSede(this,'all')">Todas las sedes</button>
+        <button class="sede-chip" data-sede="Calle 26" onclick="filterSede(this,'Calle 26')">Calle 26</button>
+        <button class="sede-chip" data-sede="Avenida 68" onclick="filterSede(this,'Avenida 68')">Avenida 68</button>
+        <button class="sede-chip" data-sede="Consorcio" onclick="filterSede(this,'Consorcio')">Consorcio</button>
+        <button class="sede-chip" data-sede="Calle 94" onclick="filterSede(this,'Calle 94')">Calle 94</button>
+      </div>
+
+      <div id="scheduleGrid" class="schedule-grid">
+        <div class="empty" style="grid-column:1/-1">
+          <div class="empty-icon">📅</div>
+          <div class="empty-title">No hay cronograma generado</div>
+          <div class="empty-sub">Haga clic en "Generar Cronograma" para iniciar</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ AUDITORÍA DEL DÍA ═══ -->
+    <section class="page" id="page-auditoria">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Auditoría del Día</div>
+          <div class="page-desc" id="auditoria-fecha">Cargando fecha...</div>
+        </div>
+        <div class="action-bar">
+          <button class="btn btn-secondary" onclick="loadTodayAudit()">🔄 Recargar del día</button>
+          <button class="btn btn-primary" onclick="saveAudit()">💾 Guardar Auditoría</button>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start;">
+        <div>
+          <div class="card" style="margin-bottom:20px;">
+            <div class="card-title">📝 Datos de la Visita</div>
+            <div class="form-grid" id="auditForm">
+              <div class="form-group">
+                <label>Fecha Auditoría</label>
+                <input type="date" id="f-fecha" class="field-auto" readonly>
+              </div>
+              <div class="form-group">
+                <label>Sede</label>
+                <select id="f-sede">
+                  <option value="">Seleccionar...</option>
+                  <option>Calle 26</option>
+                  <option>Avenida 68</option>
+                  <option>Consorcio</option>
+                  <option>Calle 94</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Hora Llegada</label>
+                <input type="time" id="f-llegada">
+              </div>
+              <div class="form-group">
+                <label>Hora Salida</label>
+                <input type="time" id="f-salida">
+              </div>
+              <div class="form-group">
+                <label>Responsable</label>
+                <input type="text" id="f-responsable" placeholder="Nombre del auditor">
+              </div>
+              <div class="form-group">
+                <label>Estado</label>
+                <select id="f-estado">
+                  <option value="Pendiente">⏳ Pendiente</option>
+                  <option value="Realizada">✅ Realizada</option>
+                  <option value="Reprogramada">🔄 Reprogramada</option>
+                </select>
+              </div>
+              <div class="form-group full">
+                <label class="field-auto-label">Observaciones (Sheets)</label>
+                <textarea id="f-obs" class="field-auto" placeholder="Cargado automáticamente desde Google Sheets..."></textarea>
+              </div>
+              <div class="form-group full">
+                <label class="field-auto-label">Hallazgos (Sheets)</label>
+                <textarea id="f-hallazgos" class="field-auto" placeholder="Cargado automáticamente desde Google Sheets..."></textarea>
+              </div>
+              <div class="form-group">
+                <label class="field-auto-label">Resultado Auditoría (Sheets)</label>
+                <input type="text" id="f-resultado" class="field-auto" placeholder="Desde Sheets...">
+              </div>
+              <div class="form-group">
+                <label class="field-auto-label">Comentarios (Sheets)</label>
+                <input type="text" id="f-comentarios" class="field-auto" placeholder="Desde Sheets...">
+              </div>
+            </div>
+          </div>
+
+          <!-- EVIDENCIAS -->
+          <div class="card">
+            <div class="card-title">📎 Evidencias</div>
+            <div class="evidence-zone" onclick="document.getElementById('fileInput').click()">
+              <div class="evidence-icon">📁</div>
+              <div class="evidence-text">Arrastre archivos aquí o haga clic para cargar</div>
+              <div class="evidence-sub">Fotografías, PDF, capturas · Máx. 10 MB por archivo</div>
+            </div>
+            <input type="file" id="fileInput" multiple accept="image/*,.pdf" style="display:none" onchange="handleFiles(event)">
+            <div class="evidence-list" id="evidenceList"></div>
+          </div>
+        </div>
+
+        <!-- SIDEBAR INFO -->
+        <div>
+          <div class="card" style="margin-bottom:14px;">
+            <div class="card-title">📊 Estado Actual</div>
+            <div id="audit-status-panel">
+              <div style="font-size:13px;color:var(--text2)">Cargue la auditoría del día para ver el estado.</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">📅 Historial de esta Sede</div>
+            <div id="sede-history" style="font-size:13px;color:var(--text2)">Seleccione una sede.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ REGISTROS ═══ -->
+    <section class="page" id="page-registros">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Tabla de Registros</div>
+          <div class="page-desc">Todas las visitas programadas y realizadas</div>
+        </div>
+        <div class="action-bar">
+          <input type="text" id="searchInput" placeholder="Buscar..." style="width:200px" oninput="filterTable()">
+          <button class="btn btn-secondary" onclick="exportExcel()">📊 Excel</button>
+          <button class="btn btn-secondary" onclick="generatePDF()">📄 PDF</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table id="mainTable">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Día</th>
+              <th>Sede</th>
+              <th>Responsable</th>
+              <th>Estado</th>
+              <th>Hallazgos</th>
+              <th>Evidencia</th>
+              <th>Observaciones</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr><td colspan="9"><div class="empty"><div class="empty-icon">🗂</div><div class="empty-sub">Sin registros. Genere el cronograma primero.</div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ EVIDENCIAS ═══ -->
+    <section class="page" id="page-evidencias">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Gestión de Evidencias</div>
+          <div class="page-desc">Archivos adjuntos por visita</div>
+        </div>
+      </div>
+      <div id="allEvidences">
+        <div class="empty"><div class="empty-icon">📎</div><div class="empty-title">Sin evidencias cargadas</div><div class="empty-sub">Cargue archivos desde la sección Auditoría del Día</div></div>
+      </div>
+    </section>
+
+    <!-- ═══ CONFIG ═══ -->
+    <section class="page" id="page-config">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Configuración</div>
+          <div class="page-desc">Conexión con Google Sheets y preferencias</div>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <div class="config-title">🔗 Google Sheets API</div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>URL del Google Spreadsheet</label>
+            <input type="url" id="cfg-sheetUrl" class="api-key-field" value="https://docs.google.com/spreadsheets/d/1YwaTve0UEvlsM8Zy8xYn5UwwqOAfprmPM7orGIj_rYw/edit?gid=992195120">
+          </div>
+          <div class="form-group">
+            <label>Spreadsheet ID (auto-detectado)</label>
+            <input type="text" id="cfg-sheetId" class="api-key-field field-auto" readonly value="1YwaTve0UEvlsM8Zy8xYn5UwwqOAfprmPM7orGIj_rYw">
+          </div>
+          <div class="form-group">
+            <label>Nombre / ID de Hoja (Sheet)</label>
+            <input type="text" id="cfg-sheetName" class="api-key-field" value="992195120" placeholder="Nombre o GID de la hoja">
+          </div>
+          <div class="form-group full">
+            <label>API Key de Google Sheets</label>
+            <input type="password" id="cfg-apiKey" class="api-key-field" placeholder="AIza... (obtenida en Google Cloud Console)">
+            <small style="color:var(--text3);font-size:11px;margin-top:4px;">
+              ⚠️ Para leer datos públicamente: comparta el Sheet como "Cualquiera con el enlace puede ver".<br>
+              Para hojas privadas necesita API Key + OAuth2. <a href="https://console.cloud.google.com" target="_blank" style="color:var(--accent2)">Obtener API Key</a>
+            </small>
+          </div>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:10px;">
+          <button class="btn btn-primary" onclick="saveConfig()">💾 Guardar Configuración</button>
+          <button class="btn btn-secondary" onclick="testConnection()">🔌 Probar Conexión</button>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <div class="config-title">📅 Mapeo de Columnas</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Columna Fecha Auditoría</label>
+            <input type="text" id="cfg-colFecha" placeholder="Ej: A, B, fecha_auditoria..." value="fecha_auditoria">
+          </div>
+          <div class="form-group">
+            <label>Columna Responsable</label>
+            <input type="text" id="cfg-colResp" placeholder="Ej: responsable, auditor..." value="responsable">
+          </div>
+          <div class="form-group">
+            <label>Columna Hallazgos</label>
+            <input type="text" id="cfg-colHall" placeholder="Ej: hallazgos..." value="hallazgos">
+          </div>
+          <div class="form-group">
+            <label>Columna Observaciones</label>
+            <input type="text" id="cfg-colObs" placeholder="Ej: observaciones..." value="observaciones">
+          </div>
+          <div class="form-group">
+            <label>Columna Resultado</label>
+            <input type="text" id="cfg-colResult" placeholder="Ej: resultado_auditoria..." value="resultado_auditoria">
+          </div>
+          <div class="form-group">
+            <label>Columna Comentarios</label>
+            <input type="text" id="cfg-colComent" placeholder="Ej: comentarios..." value="comentarios">
+          </div>
+        </div>
+        <div style="margin-top:16px;">
+          <button class="btn btn-secondary" onclick="saveConfig()">💾 Guardar Mapeo</button>
+        </div>
+      </div>
+
+      <div class="config-section" id="sheetPreviewSection" style="display:none;">
+        <div class="config-title">👀 Vista Previa de Datos (Sheets)</div>
+        <div id="sheetPreview"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ═══ MODAL VISITA ═══ -->
+<div class="modal-overlay" id="visitModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Detalles de Visita</div>
+      <button class="close-btn" onclick="closeModal('visitModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Fecha</label>
+          <input type="date" id="m-fecha" class="field-auto" readonly>
+        </div>
+        <div class="form-group">
+          <label>Sede</label>
+          <input type="text" id="m-sede" class="field-auto" readonly>
+        </div>
+        <div class="form-group">
+          <label>Hora Llegada</label>
+          <input type="time" id="m-llegada">
+        </div>
+        <div class="form-group">
+          <label>Hora Salida</label>
+          <input type="time" id="m-salida">
+        </div>
+        <div class="form-group">
+          <label>Responsable</label>
+          <input type="text" id="m-responsable">
+        </div>
+        <div class="form-group">
+          <label>Estado</label>
+          <select id="m-estado">
+            <option value="Pendiente">⏳ Pendiente</option>
+            <option value="Realizada">✅ Realizada</option>
+            <option value="Reprogramada">🔄 Reprogramada</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label class="field-auto-label">Hallazgos</label>
+          <textarea id="m-hallazgos" class="field-auto"></textarea>
+        </div>
+        <div class="form-group full">
+          <label class="field-auto-label">Observaciones</label>
+          <textarea id="m-obs" class="field-auto"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="field-auto-label">Resultado</label>
+          <input type="text" id="m-resultado" class="field-auto">
+        </div>
+        <div class="form-group">
+          <label class="field-auto-label">Comentarios</label>
+          <input type="text" id="m-comentarios" class="field-auto">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('visitModal')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveModalAudit()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════════════
+const STATE = {
+  schedule: [],      // [{id, date, dateStr, dayName, sede, status, responsable, hallazgos, obs, resultado, comentarios, evidences:[]}]
+  sheetsData: [],    // raw rows from Google Sheets
+  sheetColumns: {},  // detected column map
+  currentVisitId: null,
+  filterMonth: null,
+  filterSede: 'all',
+  config: {}
+};
+
+const SEDES = ['Calle 26', 'Avenida 68', 'Consorcio', 'Calle 94'];
+const DIAS  = ['Lunes','Martes','Miércoles','Jueves','Viernes'];
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+// ════════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  loadConfig();
+  setTodayDate();
+  buildMonthFilter();
+  syncSheets();
+  loadFromStorage();
+  updateDashboard();
+});
+
+function setTodayDate() {
+  const today = new Date();
+  const iso = today.toISOString().split('T')[0];
+  document.getElementById('f-fecha').value = iso;
+  document.getElementById('auditoria-fecha').textContent =
+    today.toLocaleDateString('es-CO', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+}
+
+// ════════════════════════════════════════════════════════════
+//  CONFIG
+// ════════════════════════════════════════════════════════════
+function loadConfig() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('compensar_config') || '{}');
+    STATE.config = {
+      apiKey: saved.apiKey || '',
+      sheetId: saved.sheetId || '1YwaTve0UEvlsM8Zy8xYn5UwwqOAfprmPM7orGIj_rYw',
+      sheetName: saved.sheetName || '',
+      colFecha: saved.colFecha || 'fecha_auditoria',
+      colResp: saved.colResp || 'responsable',
+      colHall: saved.colHall || 'hallazgos',
+      colObs: saved.colObs || 'observaciones',
+      colResult: saved.colResult || 'resultado_auditoria',
+      colComent: saved.colComent || 'comentarios'
+    };
+    // Populate form
+    if (saved.apiKey) document.getElementById('cfg-apiKey').value = saved.apiKey;
+    if (saved.sheetName) document.getElementById('cfg-sheetName').value = saved.sheetName;
+    if (saved.colFecha) document.getElementById('cfg-colFecha').value = saved.colFecha;
+    if (saved.colResp) document.getElementById('cfg-colResp').value = saved.colResp;
+    if (saved.colHall) document.getElementById('cfg-colHall').value = saved.colHall;
+    if (saved.colObs) document.getElementById('cfg-colObs').value = saved.colObs;
+    if (saved.colResult) document.getElementById('cfg-colResult').value = saved.colResult;
+    if (saved.colComent) document.getElementById('cfg-colComent').value = saved.colComent;
+  } catch(e) {}
+}
+
+function saveConfig() {
+  STATE.config = {
+    apiKey: document.getElementById('cfg-apiKey').value.trim(),
+    sheetId: document.getElementById('cfg-sheetId').value.trim(),
+    sheetName: document.getElementById('cfg-sheetName').value.trim(),
+    colFecha: document.getElementById('cfg-colFecha').value.trim(),
+    colResp: document.getElementById('cfg-colResp').value.trim(),
+    colHall: document.getElementById('cfg-colHall').value.trim(),
+    colObs: document.getElementById('cfg-colObs').value.trim(),
+    colResult: document.getElementById('cfg-colResult').value.trim(),
+    colComent: document.getElementById('cfg-colComent').value.trim()
+  };
+  localStorage.setItem('compensar_config', JSON.stringify(STATE.config));
+  toast('Configuración guardada', 'success');
+  syncSheets();
+}
+
+// ════════════════════════════════════════════════════════════
+//  GOOGLE SHEETS SYNC
+// ════════════════════════════════════════════════════════════
+async function syncSheets() {
+  setSyncStatus('loading', 'Conectando...');
+  const sheetId = STATE.config.sheetId || '1YwaTve0UEvlsM8Zy8xYn5UwwqOAfprmPM7orGIj_rYw';
+  const apiKey = STATE.config.apiKey;
+  const sheetName = STATE.config.sheetName || '';
+
+  // Strategy 1: Public CSV export (works for public sheets without API key)
+  const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=992195120`;
+  
+  try {
+    const resp = await fetch(csvUrl);
+    if (!resp.ok) throw new Error('CSV fetch failed');
+    const csv = await resp.text();
+    if (!csv || csv.includes('<!DOCTYPE')) throw new Error('Not CSV data');
+    STATE.sheetsData = parseCSV(csv);
+    detectColumns();
+    mergeSheetDataIntoSchedule();
+    updateDashboard();
+    updateTable();
+    loadTodayAudit();
+    setSyncStatus('connected', `Sincronizado · ${new Date().toLocaleTimeString('es-CO')}`);
+    toast(`${STATE.sheetsData.length} registros cargados desde Sheets`, 'success');
+    showSheetPreview();
+    return;
+  } catch(e) {}
+
+  // Strategy 2: API Key (if configured)
+  if (apiKey) {
+    try {
+      const range = sheetName ? encodeURIComponent(sheetName) : 'A:Z';
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
+      const resp = await fetch(url);
+      const json = await resp.json();
+      if (json.values) {
+        const headers = json.values[0].map(h => h.toLowerCase().trim().replace(/\s+/g,'_'));
+        STATE.sheetsData = json.values.slice(1).map(row => {
+          const obj = {};
+          headers.forEach((h,i) => { obj[h] = row[i] || ''; });
+          return obj;
+        });
+        detectColumns();
+        mergeSheetDataIntoSchedule();
+        updateDashboard();
+        updateTable();
+        loadTodayAudit();
+        setSyncStatus('connected', `Sincronizado · ${new Date().toLocaleTimeString('es-CO')}`);
+        toast(`${STATE.sheetsData.length} registros desde Sheets API`, 'success');
+        showSheetPreview();
+        return;
+      }
+    } catch(e) {}
+  }
+
+  // Fallback: Disconnected
+  setSyncStatus('disconnected', 'Sin conexión a Sheets');
+  toast('No se pudo conectar a Google Sheets. Verifique la configuración.', 'warning');
+}
+
+function setSyncStatus(type, text) {
+  const dot = document.getElementById('syncDot');
+  const txt = document.getElementById('syncText');
+  dot.className = 'sync-dot ' + (type === 'connected' ? '' : type);
+  txt.textContent = text;
+}
+
+function parseCSV(csv) {
+  const lines = csv.split('\n').filter(l => l.trim());
+  if (!lines.length) return [];
+  const headers = splitCSVLine(lines[0]).map(h => h.toLowerCase().trim().replace(/\s+/g,'_').replace(/[^a-z0-9_áéíóúñ]/gi,''));
+  return lines.slice(1).map(line => {
+    const vals = splitCSVLine(line);
+    const obj = {};
+    headers.forEach((h,i) => { obj[h] = (vals[i] || '').trim(); });
+    return obj;
+  }).filter(r => Object.values(r).some(v => v));
+}
+
+function splitCSVLine(line) {
+  const result = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { inQ = !inQ; }
+    else if (c === ',' && !inQ) { result.push(cur); cur = ''; }
+    else { cur += c; }
+  }
+  result.push(cur);
+  return result;
+}
+
+function detectColumns() {
+  if (!STATE.sheetsData.length) return;
+  const keys = Object.keys(STATE.sheetsData[0]);
+  const find = (terms) => keys.find(k => terms.some(t => k.includes(t))) || '';
+
+  // Auto-detect column names from sheet headers
+  const detected = {
+    fecha: find(['fecha','date','auditoria','audit']),
+    responsable: find(['responsable','auditor','encargado','nombre']),
+    hallazgos: find(['hallazgo','finding','observ_crit']),
+    observaciones: find(['observacion','observation','nota','comment']),
+    resultado: find(['resultado','result','calific']),
+    comentarios: find(['comentario','coment','remark']),
+    sede: find(['sede','sucursal','ubicacion','lugar'])
+  };
+
+  STATE.sheetColumns = detected;
+}
+
+function getSheetVal(row, colKey) {
+  const col = STATE.sheetColumns[colKey] || STATE.config['col' + colKey.charAt(0).toUpperCase() + colKey.slice(1)];
+  if (!col) return '';
+  return row[col] || row[col.toLowerCase()] || '';
+}
+
+function mergeSheetDataIntoSchedule() {
+  if (!STATE.sheetsData.length || !STATE.schedule.length) return;
+  STATE.schedule.forEach(visit => {
+    const match = findSheetRowByDate(visit.dateStr);
+    if (match) {
+      visit.hallazgos = visit.hallazgos || getSheetVal(match, 'hallazgos');
+      visit.obs = visit.obs || getSheetVal(match, 'observaciones');
+      visit.responsable = visit.responsable || getSheetVal(match, 'responsable');
+      visit.resultado = visit.resultado || getSheetVal(match, 'resultado');
+      visit.comentarios = visit.comentarios || getSheetVal(match, 'comentarios');
+      if (visit.hallazgos || visit.obs || visit.resultado) {
+        visit.status = 'Realizada';
+      }
+    }
+  });
+  saveToStorage();
+}
+
+function findSheetRowByDate(dateStr) {
+  if (!dateStr) return null;
+  const normalize = d => {
+    if (!d) return '';
+    const str = String(d).trim();
+    // Try multiple date formats
+    const parsed = new Date(str);
+    if (!isNaN(parsed)) return parsed.toISOString().split('T')[0];
+    // DD/MM/YYYY
+    const m = str.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+    if (m) {
+      const y = m[3].length === 2 ? '20' + m[3] : m[3];
+      return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+    }
+    return str;
+  };
+  return STATE.sheetsData.find(row => {
+    const colFecha = STATE.sheetColumns.fecha;
+    if (!colFecha) return false;
+    return normalize(row[colFecha]) === dateStr;
+  }) || null;
+}
+
+function showSheetPreview() {
+  if (!STATE.sheetsData.length) return;
+  const section = document.getElementById('sheetPreviewSection');
+  const container = document.getElementById('sheetPreview');
+  section.style.display = 'block';
+  const headers = Object.keys(STATE.sheetsData[0]);
+  const rows = STATE.sheetsData.slice(0, 5);
+  let html = '<div class="table-wrap"><table><thead><tr>';
+  headers.forEach(h => html += `<th>${h}</th>`);
+  html += '</tr></thead><tbody>';
+  rows.forEach(row => {
+    html += '<tr>';
+    headers.forEach(h => html += `<td>${row[h] || ''}</td>`);
+    html += '</tr>';
+  });
+  html += '</tbody></table></div>';
+  html += `<div style="margin-top:8px;font-size:11px;color:var(--text3)">Mostrando ${rows.length} de ${STATE.sheetsData.length} filas · Columnas detectadas: ${headers.join(', ')}</div>`;
+  container.innerHTML = html;
+}
+
+async function testConnection() {
+  toast('Probando conexión...', 'info');
+  await syncSheets();
+}
+
+// ════════════════════════════════════════════════════════════
+//  SCHEDULE GENERATION
+// ════════════════════════════════════════════════════════════
+function generateSchedule() {
+  const visits = [];
+  const today = new Date();
+
+  // First visit: Friday May 22, 2025
+  const first = new Date(2025, 4, 22); // May = 4 (0-indexed)
+  let sedeIdx = 0;
+
+  // Add first fixed visit
+  visits.push(createVisit(first, SEDES[sedeIdx % 4]));
+  sedeIdx++;
+
+  // Generate visits from May 26 to December 2025
+  // ~2-3 visits per week, distributed across sedes
+  const end = new Date(2025, 11, 31);
+  let cur = new Date(2025, 4, 26); // Start after first visit
+
+  const usedDates = new Set([first.toISOString().split('T')[0]]);
+
+  while (cur <= end) {
+    // Each week: pick 2-3 random weekdays
+    const weekVisits = 2 + (Math.random() > 0.6 ? 1 : 0);
+    const weekDays = shuffleArray([1,2,3,4,5]).slice(0, weekVisits);
+
+    weekDays.forEach(wd => {
+      const d = new Date(cur);
+      d.setDate(d.getDate() + (wd - d.getDay() + 7) % 7);
+      if (d <= end && d >= new Date(2025, 4, 22)) {
+        const iso = d.toISOString().split('T')[0];
+        if (!usedDates.has(iso)) {
+          usedDates.add(iso);
+          visits.push(createVisit(new Date(d), SEDES[sedeIdx % 4]));
+          sedeIdx++;
+        }
+      }
+    });
+
+    cur.setDate(cur.getDate() + 7);
+  }
+
+  // Sort by date
+  visits.sort((a,b) => a.date - b.date);
+
+  // Preserve existing data
+  visits.forEach(v => {
+    const existing = STATE.schedule.find(s => s.dateStr === v.dateStr && s.sede === v.sede);
+    if (existing) {
+      v.status = existing.status;
+      v.responsable = existing.responsable;
+      v.hallazgos = existing.hallazgos;
+      v.obs = existing.obs;
+      v.resultado = existing.resultado;
+      v.comentarios = existing.comentarios;
+      v.evidences = existing.evidences;
+      v.llegada = existing.llegada;
+      v.salida = existing.salida;
+    }
+  });
+
+  STATE.schedule = visits;
+  mergeSheetDataIntoSchedule();
+  saveToStorage();
+  renderSchedule();
+  updateTable();
+  updateDashboard();
+  updateBadges();
+  toast(`Cronograma generado: ${visits.length} visitas (Mayo–Diciembre 2025)`, 'success');
+}
+
+function createVisit(date, sede) {
+  const id = `visit_${date.toISOString().split('T')[0]}_${sede.replace(/\s/g,'')}`;
+  const days = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  return {
+    id,
+    date: new Date(date),
+    dateStr: date.toISOString().split('T')[0],
+    dayName: days[date.getDay()],
+    monthName: MESES[date.getMonth()],
+    sede,
+    status: 'Pendiente',
+    responsable: '',
+    hallazgos: '',
+    obs: '',
+    resultado: '',
+    comentarios: '',
+    evidences: [],
+    llegada: '',
+    salida: ''
+  };
+}
+
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ════════════════════════════════════════════════════════════
+//  RENDER SCHEDULE
+// ════════════════════════════════════════════════════════════
+function buildMonthFilter() {
+  const months = ['Mayo','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const indices = [4,5,6,7,8,9,10,11];
+  const container = document.getElementById('monthFilter');
+  container.innerHTML = '<button class="month-btn active" onclick="filterMonth(this, null)">Todos</button>';
+  months.forEach((m,i) => {
+    container.innerHTML += `<button class="month-btn" onclick="filterMonth(this, ${indices[i]})">${m}</button>`;
+  });
+}
+
+function filterMonth(btn, month) {
+  document.querySelectorAll('.month-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  STATE.filterMonth = month;
+  renderSchedule();
+}
+
+function filterSede(btn, sede) {
+  document.querySelectorAll('.sede-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  STATE.filterSede = sede;
+  renderSchedule();
+}
+
+function filterBySede(sede) {
+  showPage('cronograma');
+  STATE.filterSede = sede;
+  document.querySelectorAll('.sede-chip').forEach(b => {
+    b.classList.toggle('active', b.dataset.sede === sede);
+  });
+  renderSchedule();
+}
+
+function renderSchedule() {
+  const container = document.getElementById('scheduleGrid');
+  const today = new Date().toISOString().split('T')[0];
+
+  let filtered = STATE.schedule.filter(v => {
+    if (STATE.filterMonth !== null && v.date.getMonth() !== STATE.filterMonth) return false;
+    if (STATE.filterSede !== 'all' && v.sede !== STATE.filterSede) return false;
+    return true;
+  });
+
+  if (!filtered.length) {
+    container.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📅</div><div class="empty-title">Sin visitas para este filtro</div></div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(v => {
+    const isToday = v.dateStr === today;
+    const isPast = v.dateStr < today;
+    const badgeClass = v.status === 'Realizada' ? 'badge-green' : v.status === 'Reprogramada' ? 'badge-red' : 'badge-yellow';
+    const sedeColor = {
+      'Calle 26':'var(--accent2)',
+      'Avenida 68':'var(--green)',
+      'Consorcio':'var(--yellow)',
+      'Calle 94':'var(--orange)'
+    }[v.sede] || 'var(--text2)';
+
+    return `
+    <div class="schedule-card ${isToday?'today':''} ${isPast&&v.status==='Pendiente'?'past':''}"
+         onclick="openVisitModal('${v.id}')">
+      <div class="sched-date">${v.dateStr}</div>
+      <div class="sched-day">${v.dayName} ${v.date.getDate()}</div>
+      <div class="sched-sede" style="color:${sedeColor}">${v.sede}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+        <span class="badge ${badgeClass}">${v.status}</span>
+        ${v.evidences?.length ? `<span style="font-size:11px;color:var(--text3)">📎 ${v.evidences.length}</span>` : ''}
+      </div>
+      ${v.responsable ? `<div style="font-size:11px;color:var(--text3);margin-top:6px;">👤 ${v.responsable}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════════════════
+//  TABLE
+// ════════════════════════════════════════════════════════════
+function updateTable() {
+  const tbody = document.getElementById('tableBody');
+  if (!STATE.schedule.length) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty"><div class="empty-icon">🗂</div><div class="empty-sub">Sin registros</div></div></td></tr>`;
+    return;
+  }
+
+  const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  let data = STATE.schedule;
+  if (search) {
+    data = data.filter(v =>
+      v.dateStr.includes(search) || v.sede.toLowerCase().includes(search) ||
+      v.responsable.toLowerCase().includes(search) || v.status.toLowerCase().includes(search) ||
+      v.hallazgos.toLowerCase().includes(search) || v.obs.toLowerCase().includes(search)
+    );
+  }
+
+  tbody.innerHTML = data.map(v => {
+    const badgeClass = v.status === 'Realizada' ? 'badge-green' : v.status === 'Reprogramada' ? 'badge-red' : 'badge-yellow';
+    return `
+    <tr onclick="openVisitModal('${v.id}')">
+      <td><span style="font-family:'DM Mono',monospace;font-size:12px">${v.dateStr}</span></td>
+      <td>${v.dayName}</td>
+      <td><strong>${v.sede}</strong></td>
+      <td>${v.responsable || '<span style="color:var(--text3)">—</span>'}</td>
+      <td><span class="badge ${badgeClass}">${v.status}</span></td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.hallazgos || '—'}</td>
+      <td>${v.evidences?.length ? `<span style="color:var(--accent2)">📎 ${v.evidences.length}</span>` : '—'}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2)">${v.obs || '—'}</td>
+      <td onclick="event.stopPropagation()">
+        <button class="btn btn-secondary btn-sm" onclick="openVisitModal('${v.id}')">✏️</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterTable() { updateTable(); }
+
+// ════════════════════════════════════════════════════════════
+//  DASHBOARD
+// ════════════════════════════════════════════════════════════
+function updateDashboard() {
+  const all = STATE.schedule;
+  const done = all.filter(v => v.status === 'Realizada').length;
+  const pending = all.filter(v => v.status === 'Pendiente').length;
+  const reprog = all.filter(v => v.status === 'Reprogramada').length;
+  const pct = all.length ? Math.round((done / all.length) * 100) : 0;
+
+  document.getElementById('stat-total').textContent = all.length;
+  document.getElementById('stat-done').textContent = done;
+  document.getElementById('stat-done-pct').textContent = `${pct}% cumplimiento`;
+  document.getElementById('stat-pending').textContent = pending;
+  document.getElementById('stat-reprog').textContent = reprog;
+  document.getElementById('stat-pct').textContent = `${pct}%`;
+  document.getElementById('stat-bar').style.width = `${pct}%`;
+
+  // Next visit
+  const today = new Date().toISOString().split('T')[0];
+  const next = all.find(v => v.dateStr >= today && v.status === 'Pendiente');
+  if (next) {
+    document.getElementById('stat-next').textContent = next.date.toLocaleDateString('es-CO',{day:'2-digit',month:'short'});
+    document.getElementById('stat-next-sede').textContent = next.sede;
+  }
+
+  // Sede hallazgos
+  const sedeHall = {};
+  SEDES.forEach(s => sedeHall[s] = 0);
+  all.forEach(v => { if (v.hallazgos) sedeHall[v.sede] = (sedeHall[v.sede]||0) + 1; });
+  const topSede = Object.entries(sedeHall).sort((a,b)=>b[1]-a[1]);
+  const maxVal = topSede[0]?.[1] || 1;
+
+  document.getElementById('top-sede-chart').innerHTML = `
+    <div>${topSede.map(([s,n]) => `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <div style="font-size:12px;width:100px;color:var(--text2)">${s}</div>
+        <div style="flex:1;background:var(--border);border-radius:4px;height:8px;overflow:hidden">
+          <div style="height:100%;background:var(--accent);border-radius:4px;width:${n?Math.round(n/maxVal*100):0}%;transition:width 0.5s"></div>
+        </div>
+        <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--text3);width:20px;text-align:right">${n}</div>
+      </div>`).join('')}</div>`;
+
+  // Upcoming
+  const upcoming = all.filter(v => v.dateStr >= today).slice(0,5);
+  document.getElementById('upcoming-list').innerHTML = upcoming.length ?
+    upcoming.map(v => `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openVisitModal('${v.id}')">
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);width:80px">${v.dateStr}</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600">${v.sede}</div>
+          <div style="font-size:11px;color:var(--text3)">${v.dayName}</div>
+        </div>
+        <span class="badge badge-yellow">${v.status}</span>
+      </div>`).join('') :
+    '<div style="color:var(--text3);font-size:13px">Sin próximas visitas</div>';
+
+  // Activity
+  const recent = [...all].sort((a,b)=>b.dateStr.localeCompare(a.dateStr)).slice(0,5);
+  document.getElementById('activity-log').innerHTML = recent.length ?
+    recent.map(v => `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+        <div style="width:30px;height:30px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:14px">
+          ${v.status==='Realizada'?'✅':v.status==='Reprogramada'?'🔄':'⏳'}
+        </div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500">${v.sede} · ${v.dateStr}</div>
+          <div style="font-size:11px;color:var(--text3)">${v.status} ${v.responsable ? '· ' + v.responsable : ''}</div>
+        </div>
+      </div>`).join('') :
+    '<div style="color:var(--text3);font-size:13px">Sin actividad</div>';
+
+  updateBadges();
+}
+
+function updateBadges() {
+  document.getElementById('badge-cronograma').textContent = STATE.schedule.length;
+  document.getElementById('badge-registros').textContent = STATE.schedule.filter(v => v.status === 'Realizada').length;
+}
+
+// ════════════════════════════════════════════════════════════
+//  MODAL
+// ════════════════════════════════════════════════════════════
+function openVisitModal(id) {
+  const v = STATE.schedule.find(s => s.id === id);
+  if (!v) return;
+  STATE.currentVisitId = id;
+
+  // Load sheet data for this date
+  const sheetRow = findSheetRowByDate(v.dateStr);
+  if (sheetRow) {
+    v.hallazgos = v.hallazgos || getSheetVal(sheetRow,'hallazgos');
+    v.obs = v.obs || getSheetVal(sheetRow,'observaciones');
+    v.responsable = v.responsable || getSheetVal(sheetRow,'responsable');
+    v.resultado = v.resultado || getSheetVal(sheetRow,'resultado');
+    v.comentarios = v.comentarios || getSheetVal(sheetRow,'comentarios');
+  }
+
+  document.getElementById('modalTitle').textContent = `${v.dayName} ${v.dateStr} · ${v.sede}`;
+  document.getElementById('m-fecha').value = v.dateStr;
+  document.getElementById('m-sede').value = v.sede;
+  document.getElementById('m-llegada').value = v.llegada || '';
+  document.getElementById('m-salida').value = v.salida || '';
+  document.getElementById('m-responsable').value = v.responsable || '';
+  document.getElementById('m-estado').value = v.status || 'Pendiente';
+  document.getElementById('m-hallazgos').value = v.hallazgos || '';
+  document.getElementById('m-obs').value = v.obs || '';
+  document.getElementById('m-resultado').value = v.resultado || '';
+  document.getElementById('m-comentarios').value = v.comentarios || '';
+
+  document.getElementById('visitModal').classList.add('open');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+function saveModalAudit() {
+  const v = STATE.schedule.find(s => s.id === STATE.currentVisitId);
+  if (!v) return;
+
+  v.llegada = document.getElementById('m-llegada').value;
+  v.salida = document.getElementById('m-salida').value;
+  v.responsable = document.getElementById('m-responsable').value;
+  v.status = document.getElementById('m-estado').value;
+  v.hallazgos = document.getElementById('m-hallazgos').value;
+  v.obs = document.getElementById('m-obs').value;
+  v.resultado = document.getElementById('m-resultado').value;
+  v.comentarios = document.getElementById('m-comentarios').value;
+
+  saveToStorage();
+  renderSchedule();
+  updateTable();
+  updateDashboard();
+  closeModal('visitModal');
+  toast('Visita guardada correctamente', 'success');
+  logActivity(`Visita ${v.sede} ${v.dateStr} actualizada a: ${v.status}`);
+}
+
+// ════════════════════════════════════════════════════════════
+//  AUDITORÍA DEL DÍA
+// ════════════════════════════════════════════════════════════
+function loadTodayAudit() {
+  const today = new Date().toISOString().split('T')[0];
+  const visit = STATE.schedule.find(v => v.dateStr === today);
+  const sheetRow = findSheetRowByDate(today);
+
+  // Populate from schedule
+  if (visit) {
+    document.getElementById('f-fecha').value = today;
+    document.getElementById('f-sede').value = visit.sede;
+    document.getElementById('f-responsable').value = visit.responsable || '';
+    document.getElementById('f-estado').value = visit.status || 'Pendiente';
+    document.getElementById('f-llegada').value = visit.llegada || '';
+    document.getElementById('f-salida').value = visit.salida || '';
+  }
+
+  // Populate from sheet
+  const src = sheetRow || {};
+  document.getElementById('f-obs').value = (visit?.obs) || getSheetVal(src,'observaciones') || '';
+  document.getElementById('f-hallazgos').value = (visit?.hallazgos) || getSheetVal(src,'hallazgos') || '';
+  document.getElementById('f-resultado').value = (visit?.resultado) || getSheetVal(src,'resultado') || '';
+  document.getElementById('f-comentarios').value = (visit?.comentarios) || getSheetVal(src,'comentarios') || '';
+
+  if (!visit && !sheetRow) {
+    document.getElementById('audit-status-panel').innerHTML =
+      '<div style="color:var(--yellow);font-size:13px;">⚠️ No hay visita programada para hoy. Puede registrar una manualmente.</div>';
+  } else {
+    const st = visit?.status || 'Pendiente';
+    const bc = st === 'Realizada' ? 'badge-green' : st === 'Reprogramada' ? 'badge-red' : 'badge-yellow';
+    document.getElementById('audit-status-panel').innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:13px;color:var(--text2)">Estado</span>
+          <span class="badge ${bc}">${st}</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:13px;color:var(--text2)">Sede</span>
+          <strong style="font-size:13px">${visit?.sede || '—'}</strong>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:13px;color:var(--text2)">Datos Sheets</span>
+          <span style="font-size:13px;color:${sheetRow?'var(--green)':'var(--text3)'}">${sheetRow?'✅ Cargados':'Sin datos'}</span>
+        </div>
+      </div>`;
+  }
+
+  // Sede history
+  const sede = visit?.sede || document.getElementById('f-sede').value;
+  if (sede) {
+    const hist = STATE.schedule.filter(v => v.sede === sede && v.dateStr < today && v.status !== 'Pendiente').slice(-3);
+    document.getElementById('sede-history').innerHTML = hist.length ?
+      hist.reverse().map(v => `
+        <div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:12px">
+          <div style="color:var(--text2)">${v.dateStr} · ${v.dayName}</div>
+          <div style="color:var(--text3);margin-top:2px">${v.status} ${v.responsable ? '· ' + v.responsable : ''}</div>
+        </div>`).join('') :
+      '<div style="color:var(--text3);font-size:12px">Sin historial previo para esta sede</div>';
+  }
+
+  // Load evidences
+  if (visit?.evidences?.length) {
+    renderEvidences(visit.evidences);
+  }
+}
+
+function saveAudit() {
+  const today = new Date().toISOString().split('T')[0];
+  let visit = STATE.schedule.find(v => v.dateStr === today);
+
+  if (!visit) {
+    // Create new visit for today
+    const sede = document.getElementById('f-sede').value;
+    if (!sede) { toast('Seleccione una sede', 'warning'); return; }
+    visit = createVisit(new Date(), sede);
+    STATE.schedule.push(visit);
+  }
+
+  visit.sede = document.getElementById('f-sede').value;
+  visit.llegada = document.getElementById('f-llegada').value;
+  visit.salida = document.getElementById('f-salida').value;
+  visit.responsable = document.getElementById('f-responsable').value;
+  visit.status = document.getElementById('f-estado').value;
+  visit.obs = document.getElementById('f-obs').value;
+  visit.hallazgos = document.getElementById('f-hallazgos').value;
+  visit.resultado = document.getElementById('f-resultado').value;
+  visit.comentarios = document.getElementById('f-comentarios').value;
+
+  saveToStorage();
+  renderSchedule();
+  updateTable();
+  updateDashboard();
+  toast('Auditoría del día guardada correctamente ✅', 'success');
+  logActivity(`Auditoría del día guardada: ${visit.sede} · ${visit.status}`);
+}
+
+// ════════════════════════════════════════════════════════════
+//  EVIDENCES
+// ════════════════════════════════════════════════════════════
+function handleFiles(event) {
+  const files = Array.from(event.target.files);
+  const today = new Date().toISOString().split('T')[0];
+  let visit = STATE.schedule.find(v => v.dateStr === today);
+  if (!visit && STATE.currentVisitId) {
+    visit = STATE.schedule.find(v => v.id === STATE.currentVisitId);
+  }
+
+  files.forEach(file => {
+    if (file.size > 10_000_000) { toast(`Archivo "${file.name}" supera 10 MB`, 'warning'); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const evidence = {
+        id: `ev_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        data: e.target.result,
+        date: new Date().toLocaleDateString('es-CO')
+      };
+      if (visit) {
+        if (!visit.evidences) visit.evidences = [];
+        visit.evidences.push(evidence);
+        renderEvidences(visit.evidences);
+        updateAllEvidences();
+        saveToStorage();
+        toast(`Evidencia "${file.name}" cargada`, 'success');
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+  event.target.value = '';
+}
+
+function renderEvidences(evidences) {
+  const list = document.getElementById('evidenceList');
+  if (!evidences?.length) { list.innerHTML = ''; return; }
+  list.innerHTML = evidences.map(e => {
+    const isImage = e.type.startsWith('image/');
+    const preview = isImage ?
+      `<img src="${e.data}" class="evidence-preview" style="display:block" alt="${e.name}">` :
+      `<div class="evidence-preview">📄</div>`;
+    return `
+    <div class="evidence-item">
+      ${preview}
+      <div class="evidence-name">${e.name}</div>
+      <div class="evidence-date">${e.date}</div>
+      <button class="evidence-del" onclick="deleteEvidence('${e.id}')">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function deleteEvidence(evId) {
+  STATE.schedule.forEach(v => {
+    if (v.evidences) v.evidences = v.evidences.filter(e => e.id !== evId);
+  });
+  const today = new Date().toISOString().split('T')[0];
+  const visit = STATE.schedule.find(v => v.dateStr === today) || STATE.schedule.find(v => v.id === STATE.currentVisitId);
+  if (visit) renderEvidences(visit.evidences);
+  updateAllEvidences();
+  saveToStorage();
+  toast('Evidencia eliminada', 'info');
+}
+
+function updateAllEvidences() {
+  const all = [];
+  STATE.schedule.forEach(v => {
+    if (v.evidences?.length) {
+      v.evidences.forEach(e => all.push({ ...e, visitDate: v.dateStr, sede: v.sede }));
+    }
+  });
+
+  const container = document.getElementById('allEvidences');
+  if (!all.length) {
+    container.innerHTML = `<div class="empty"><div class="empty-icon">📎</div><div class="empty-title">Sin evidencias</div></div>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div style="margin-bottom:16px;font-size:13px;color:var(--text2)">${all.length} evidencia(s) en total</div>
+    <div class="evidence-list">${all.map(e => {
+      const isImage = e.type?.startsWith('image/');
+      return `
+      <div class="evidence-item">
+        ${isImage ? `<img src="${e.data}" class="evidence-preview" style="display:block">` : `<div class="evidence-preview">📄</div>`}
+        <div class="evidence-name">${e.name}</div>
+        <div class="evidence-date">${e.visitDate} · ${e.sede}</div>
+        <div class="evidence-date">${e.date}</div>
+      </div>`;
+    }).join('')}</div>`;
+}
+
+// ════════════════════════════════════════════════════════════
+//  EXPORT
+// ════════════════════════════════════════════════════════════
+function exportExcel() {
+  if (!STATE.schedule.length) { toast('Sin datos para exportar', 'warning'); return; }
+  try {
+    const data = STATE.schedule.map(v => ({
+      'Fecha': v.dateStr,
+      'Día': v.dayName,
+      'Mes': v.monthName,
+      'Sede': v.sede,
+      'Estado': v.status,
+      'Responsable': v.responsable,
+      'Hora Llegada': v.llegada,
+      'Hora Salida': v.salida,
+      'Hallazgos': v.hallazgos,
+      'Observaciones': v.obs,
+      'Resultado Auditoría': v.resultado,
+      'Comentarios': v.comentarios,
+      'N° Evidencias': (v.evidences||[]).length
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Cronograma Visitas');
+
+    // Style header row width
+    ws['!cols'] = [
+      {wch:12},{wch:12},{wch:12},{wch:14},{wch:14},{wch:20},
+      {wch:12},{wch:12},{wch:30},{wch:30},{wch:20},{wch:25},{wch:12}
+    ];
+
+    XLSX.writeFile(wb, `Compensar_Cronograma_Visitas_${new Date().toISOString().slice(0,10)}.xlsx`);
+    toast('Excel exportado correctamente', 'success');
+  } catch(e) {
+    toast('Error al exportar Excel', 'error');
+  }
+}
+
+function generatePDF() {
+  if (!STATE.schedule.length) { toast('Sin datos para generar PDF', 'warning'); return; }
+
+  const today = new Date().toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'});
+  const done = STATE.schedule.filter(v => v.status === 'Realizada').length;
+  const pct = STATE.schedule.length ? Math.round(done/STATE.schedule.length*100) : 0;
+
+  const rows = STATE.schedule.map(v => `
+    <tr>
+      <td>${v.dateStr}</td>
+      <td>${v.dayName}</td>
+      <td>${v.sede}</td>
+      <td>${v.responsable||'—'}</td>
+      <td style="color:${v.status==='Realizada'?'#22c55e':v.status==='Reprogramada'?'#ef4444':'#f59e0b'}">${v.status}</td>
+      <td>${v.hallazgos||'—'}</td>
+      <td>${(v.evidences||[]).length}</td>
+    </tr>`).join('');
+
+  const html = `<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <title>Compensar – Cronograma de Visitas Operativas</title>
+    <style>
+      body{font-family:Arial,sans-serif;color:#1a1a2e;margin:0;padding:24px;font-size:12px}
+      h1{font-size:20px;color:#1e3a5f;margin-bottom:4px}
+      .sub{color:#666;font-size:11px;margin-bottom:20px}
+      .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+      .stat{background:#f5f7fa;border-radius:8px;padding:14px;text-align:center}
+      .stat-v{font-size:24px;font-weight:700;color:#1e3a5f}
+      .stat-l{font-size:10px;color:#888;margin-top:4px}
+      table{width:100%;border-collapse:collapse;font-size:11px}
+      th{background:#1e3a5f;color:#fff;padding:8px 10px;text-align:left}
+      td{padding:7px 10px;border-bottom:1px solid #e5e7eb}
+      tr:nth-child(even) td{background:#f9fafb}
+      .footer{margin-top:20px;font-size:10px;color:#999;text-align:center}
+    </style></head><body>
+    <h1>Compensar · Cronograma de Visitas Operativas 2025</h1>
+    <div class="sub">Generado el ${today} · Total: ${STATE.schedule.length} visitas</div>
+    <div class="stats">
+      <div class="stat"><div class="stat-v">${STATE.schedule.length}</div><div class="stat-l">TOTAL</div></div>
+      <div class="stat"><div class="stat-v" style="color:#22c55e">${done}</div><div class="stat-l">REALIZADAS</div></div>
+      <div class="stat"><div class="stat-v" style="color:#f59e0b">${STATE.schedule.filter(v=>v.status==='Pendiente').length}</div><div class="stat-l">PENDIENTES</div></div>
+      <div class="stat"><div class="stat-v" style="color:#1e3a5f">${pct}%</div><div class="stat-l">CUMPLIMIENTO</div></div>
+    </div>
+    <table>
+      <thead><tr><th>Fecha</th><th>Día</th><th>Sede</th><th>Responsable</th><th>Estado</th><th>Hallazgos</th><th>Evidencias</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="footer">Compensar · Sistema de Gestión de Visitas Operativas · ${today}</div>
+    <script>window.onload=()=>{window.print()}<\/script>
+    </body></html>`;
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+  toast('PDF generado en nueva ventana (Ctrl+P para imprimir)', 'info');
+}
+
+// ════════════════════════════════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════════════════════════════════
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  if (name === 'auditoria') loadTodayAudit();
+  if (name === 'registros') updateTable();
+  if (name === 'evidencias') updateAllEvidences();
+  if (name === 'cronograma') renderSchedule();
+  if (name === 'dashboard') updateDashboard();
+}
+
+// ════════════════════════════════════════════════════════════
+//  PERSISTENCE
+// ════════════════════════════════════════════════════════════
+function saveToStorage() {
+  try {
+    // Save schedule (without heavy image data for speed)
+    const slim = STATE.schedule.map(v => ({
+      ...v,
+      date: v.date.toISOString(),
+      evidences: (v.evidences||[]).map(e => ({...e, data: e.data?.substring(0,200) === e.data?.substring(0,200) ? e.data : e.data}))
+    }));
+    localStorage.setItem('compensar_schedule', JSON.stringify(slim));
+  } catch(e) {
+    console.warn('Storage full, saving without evidences');
+    try {
+      const slim = STATE.schedule.map(v => ({ ...v, date: v.date.toISOString(), evidences: [] }));
+      localStorage.setItem('compensar_schedule', JSON.stringify(slim));
+    } catch(e2) {}
+  }
+}
+
+function loadFromStorage() {
+  try {
+    const saved = localStorage.getItem('compensar_schedule');
+    if (saved) {
+      const data = JSON.parse(saved);
+      STATE.schedule = data.map(v => ({ ...v, date: new Date(v.date), evidences: v.evidences || [] }));
+      renderSchedule();
+      updateTable();
+      updateDashboard();
+      updateBadges();
+      if (STATE.schedule.length) {
+        toast(`${STATE.schedule.length} visitas cargadas del almacenamiento local`, 'info');
+      }
+    }
+  } catch(e) {}
+}
+
+// ════════════════════════════════════════════════════════════
+//  ACTIVITY LOG
+// ════════════════════════════════════════════════════════════
+function logActivity(msg) {
+  try {
+    const log = JSON.parse(localStorage.getItem('compensar_log') || '[]');
+    log.unshift({ msg, time: new Date().toLocaleString('es-CO') });
+    localStorage.setItem('compensar_log', JSON.stringify(log.slice(0, 50)));
+  } catch(e) {}
+}
+
+// ════════════════════════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════════════════════════
+function toast(msg, type = 'info') {
+  const icons = { success:'✅', error:'❌', warning:'⚠️', info:'ℹ️' };
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span class="toast-icon">${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(20px)'; t.style.transition='all 0.3s'; setTimeout(()=>t.remove(),300); }, 4000);
+}
+
+// ════════════════════════════════════════════════════════════
+//  CLOSE MODAL ON OVERLAY CLICK
+// ════════════════════════════════════════════════════════════
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+
+// ════════════════════════════════════════════════════════════
+//  CFG: extract sheet ID from URL
+// ════════════════════════════════════════════════════════════
+document.getElementById('cfg-sheetUrl').addEventListener('input', function() {
+  const m = this.value.match(/\/spreadsheets\/d\/([^\/]+)/);
+  if (m) {
+    document.getElementById('cfg-sheetId').value = m[1];
+    STATE.config.sheetId = m[1];
+  }
+  const gid = this.value.match(/gid=(\d+)/);
+  if (gid) {
+    document.getElementById('cfg-sheetName').value = gid[1];
+  }
+});
+
+document.getElementById('f-sede').addEventListener('change', loadTodayAudit);
+</script>
+</body>
+</html>
