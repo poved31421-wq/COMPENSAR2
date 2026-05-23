@@ -386,7 +386,16 @@ function doGet(e) {
       for (var j = 0; j < headers.length; j++) {
         var val = data[i][j];
         if (val instanceof Date) {
-          val = Utilities.formatDate(val, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+          // Detectar si es solo hora (fechas tipo 1899-12-30 son horas en Sheets)
+          var yr = val.getFullYear();
+          if (yr <= 1900) {
+            // Es un valor de hora
+            var hh = val.getHours().toString().padStart(2,'0');
+            var mm = val.getMinutes().toString().padStart(2,'0');
+            val = hh + ':' + mm;
+          } else {
+            val = Utilities.formatDate(val, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+          }
         }
         row[headers[j]] = val !== undefined && val !== null ? String(val) : '';
       }
@@ -453,6 +462,15 @@ function getSheetByGid(ss, gid) {
   <div class="card" id="prev-card" style="display:none">
     <div class="ct">👀 Datos del Sheet (vista previa)</div>
     <div id="prev-data"></div>
+  </div>
+
+  <!-- DEBUG PANEL -->
+  <div class="card" id="debug-card" style="display:none;margin-top:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div class="ct" style="margin-bottom:0">🔬 Diagnóstico de Columnas</div>
+      <button class="btn bs sm" onclick="doSync()">⟳ Re-sincronizar</button>
+    </div>
+    <div id="debug-panel"><div style="font-size:13px;color:var(--text2)">Conecte primero para ver el diagnóstico.</div></div>
   </div>
 </section>
 
@@ -632,97 +650,156 @@ function updateConnStatus(ok, msg){
 }
 
 // ══════════════════════════════════════════════════
-//  DETECT COLUMNS (flexible, usa COLS como mapa base
-//  pero también intenta detectar automáticamente)
+//  DETECT COLUMNS — detección robusta con debug
 // ══════════════════════════════════════════════════
 function detectCols(headers){
-  // Las cabeceras ya vienen normalizadas desde el Apps Script
-  // Solo verificamos cuáles están presentes
   if(!headers.length) return;
-  console.log('Columnas del Sheet:', headers);
+  console.log('=== COLUMNAS REALES DEL SHEET ===');
+  console.log(headers);
+  S._headers = headers; // guardar para debug
 
-  // Buscar columna de fecha flexible
-  const fCol = headers.find(h=>h.includes('fecha_auditoria')) ||
-               headers.find(h=>h.includes('fecha')) ||
-               headers.find(h=>h.includes('marca_temporal')) || '';
-  if(fCol) COLS.fecha = fCol;
+  const f = (terms) => headers.find(h => terms.some(t => h.includes(t))) || '';
 
-  const nCol = headers.find(h=>h.includes('nombre_a_quien')) || headers.find(h=>h.includes('nombre'));
-  if(nCol) COLS.nombre = nCol;
+  COLS.fecha    = f(['fecha_auditoria','fecha_audit']) || f(['fecha']) || f(['marca_temporal']);
+  COLS.marca    = f(['marca_temporal']) || f(['timestamp','marca']);
+  COLS.nombre   = f(['nombre_a_quien','nombre_quien']) || f(['nombre_auditado','nombre']);
+  COLS.cedula   = f(['cedula_a_quien','cedula_quien']) || f(['cedula','documento','cc']);
+  COLS.hrecurso = f(['hora_de_llegada_a_la_sede','hora_llegada_sede','hora_llegada_recurso','llegada_recurso']) || f(['hora_llegada','hora_de_llegada']);
+  COLS.pres1    = f(['presentacion_del_personal','presentacion']) || f(['presentacion']);
+  COLS.calidad  = f(['calidad_de_atencion','calidad_atencion','calidad']) || f(['atencion']);
+  COLS.obs      = f(['obsevaciones_de_la_atencion','observaciones_de_la_atencion','obsevaciones_atencion','observaciones_atencion']) || f(['obsevacion','observacion','obs']);
+  COLS.sede     = f(['sede']) || f(['sucursal','ubicacion','lugar']);
+  COLS.docs     = f(['docuemento_pendiente','documento_pendiente','documentos_pendiente','docuemento']) || f(['pendiente','radicar']);
+  COLS.video    = f(['video_apertura','video_buzon','video']) || f(['apertura_buzon','buzon']);
 
-  const cCol = headers.find(h=>h.includes('calidad'));
-  if(cCol) COLS.calidad = cCol;
+  console.log('=== MAPEO DETECTADO ===');
+  console.log(JSON.stringify(COLS, null, 2));
+  updateDebugPanel();
+}
 
-  const oCol = headers.find(h=>h.includes('obsev') || h.includes('observ'));
-  if(oCol) COLS.obs = oCol;
-
-  const sCol = headers.find(h=>h==='sede');
-  if(sCol) COLS.sede = sCol;
-
-  const dCol = headers.find(h=>h.includes('docuem') || h.includes('document'));
-  if(dCol) COLS.docs = dCol;
-
-  const vCol = headers.find(h=>h.includes('video'));
-  if(vCol) COLS.video = vCol;
-
-  const hrCol = headers.find(h=>h.includes('hora_de_llegada'));
-  if(hrCol) COLS.hrecurso = hrCol;
-
-  const presCol = headers.find(h=>h.includes('presentacion'));
-  if(presCol) COLS.pres1 = presCol;
-
-  const cedCol = headers.find(h=>h.includes('cedula'));
-  if(cedCol) COLS.cedula = cedCol;
+function updateDebugPanel(){
+  const el = document.getElementById('debug-panel');
+  if(!el) return;
+  const headers = S._headers || [];
+  el.innerHTML = `
+    <div style="margin-bottom:10px">
+      <strong style="color:var(--text)">Columnas reales del Sheet (${headers.length}):</strong>
+      <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:5px">
+        ${headers.map(h=>`<span style="background:var(--bg3);border:1px solid var(--border);padding:2px 8px;border-radius:4px;font-size:11px;font-family:monospace;color:var(--accent2)">${h}</span>`).join('')}
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <strong style="color:var(--text)">Mapeo activo:</strong>
+      <div style="margin-top:6px;display:grid;grid-template-columns:1fr 1fr;gap:4px">
+        ${Object.entries(COLS).map(([k,v])=>`
+          <div style="font-size:12px;display:flex;gap:8px;align-items:center">
+            <span style="color:var(--text3);width:80px">${k}:</span>
+            <span style="color:${v?'var(--green)':'var(--red)'};font-family:monospace;font-size:11px">${v||'⚠ NO DETECTADO'}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+    ${S.rows.length ? `
+    <div style="margin-top:12px">
+      <strong style="color:var(--text)">Primera fila de datos:</strong>
+      <div style="margin-top:6px;background:var(--bg);border-radius:6px;padding:10px;font-family:monospace;font-size:11px;color:var(--text2);max-height:120px;overflow-y:auto">
+        ${Object.entries(S.rows[0]).map(([k,v])=>`<div><span style="color:var(--text3)">${k}:</span> <span style="color:var(--text)">${v||'(vacío)'}</span></div>`).join('')}
+      </div>
+    </div>` : ''}`;
 }
 
 function gv(row, key){
   const col = COLS[key];
-  if(!col||!row) return '';
-  return row[col] || '';
+  if(!row) return '';
+  if(col && row[col] !== undefined) return row[col] || '';
+  // Fallback: buscar cualquier clave que contenga el key
+  const fallback = Object.keys(row).find(k => k.includes(key));
+  return fallback ? (row[fallback] || '') : '';
 }
 
 function normDate(v){
   if(!v) return '';
   const s = String(v).trim();
-  // Already ISO
+  if(!s) return '';
+  // Already ISO YYYY-MM-DD
   if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  // Parse date
+  // Try JS Date parsing first
   const d = new Date(s);
-  if(!isNaN(d)) return d.toISOString().split('T')[0];
-  // DD/MM/YYYY
-  const m = s.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
-  if(m){ const y=m[3].length===2?'20'+m[3]:m[3]; return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`; }
-  return s;
+  if(!isNaN(d) && s.length > 4) return d.toISOString().split('T')[0];
+  // DD/MM/YYYY or D/M/YYYY
+  const m1 = s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
+  if(m1){ const y=m1[3].length===2?'20'+m1[3]:m1[3]; return `${y}-${m1[2].padStart(2,'0')}-${m1[1].padStart(2,'0')}`; }
+  // YYYY/MM/DD
+  const m2 = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+  if(m2) return `${m2[1]}-${m2[2].padStart(2,'0')}-${m2[3].padStart(2,'0')}`;
+  return '';
 }
 
 function findRow(dateStr){
-  if(!dateStr||!S.rows.length) return null;
-  return S.rows.find(r=>{
-    const rv = gv(r,'fecha') || gv(r,'marca');
-    return normDate(rv)===dateStr;
-  }) || null;
+  if(!dateStr || !S.rows.length) return null;
+
+  // Try all possible date columns
+  const dateCols = [COLS.fecha, COLS.marca, 'fecha_auditoria','marca_temporal','fecha','date']
+    .filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i);
+
+  for(const row of S.rows){
+    for(const col of dateCols){
+      const raw = row[col];
+      if(!raw) continue;
+      const nd = normDate(raw);
+      if(nd === dateStr) return row;
+    }
+  }
+  return null;
 }
 
 function mergeIntoSched(){
-  S.sched.forEach(v=>{
-    const row=findRow(v.dateStr);
-    if(row){
-      v.nombre  = v.nombre  || gv(row,'nombre');
-      v.cedula  = v.cedula  || gv(row,'cedula');
-      v.hrecurso= v.hrecurso|| gv(row,'hrecurso');
-      v.pres    = v.pres    || gv(row,'pres1');
-      v.calidad = v.calidad || gv(row,'calidad');
-      v.obs     = v.obs     || gv(row,'obs');
-      v.docs    = v.docs    || gv(row,'docs');
-      v.video   = v.video   || gv(row,'video');
-      if(v.nombre||v.calidad||v.obs) v.status='Realizada';
+  // 1. Si hay filas del Sheet, crear visitas en S.sched para las fechas que no existan aún
+  S.rows.forEach(row=>{
+    const dateStr = normDate(gv(row,'fecha') || gv(row,'marca') || row[Object.keys(row)[0]]);
+    if(!dateStr) return;
+    const sedeRaw = gv(row,'sede') || '';
+    const sede    = SEDES.find(s=>sedeRaw.toLowerCase().includes(s.toLowerCase())) || sedeRaw || 'Calle 26';
+
+    let v = S.sched.find(x=>x.dateStr===dateStr);
+    if(!v){
+      v = mkV(new Date(dateStr+'T12:00:00'), sede);
+      S.sched.push(v);
     }
+    // Enriquecer con datos del Sheet
+    v.nombre   = gv(row,'nombre')   || v.nombre;
+    v.cedula   = gv(row,'cedula')   || v.cedula;
+    v.hrecurso = gv(row,'hrecurso') || v.hrecurso;
+    v.pres     = gv(row,'pres1')    || v.pres;
+    v.calidad  = gv(row,'calidad')  || v.calidad;
+    v.obs      = gv(row,'obs')      || v.obs;
+    v.docs     = gv(row,'docs')     || v.docs;
+    v.video    = gv(row,'video')    || v.video;
+    if(v.nombre || v.calidad || v.obs) v.status = 'Realizada';
+    if(sedeRaw && !v.sede) v.sede = sede;
   });
+
+  // 2. Para las visitas ya existentes del cronograma, cruzar con Sheet
+  S.sched.forEach(v=>{
+    const row = findRow(v.dateStr);
+    if(!row) return;
+    v.nombre   = v.nombre   || gv(row,'nombre');
+    v.cedula   = v.cedula   || gv(row,'cedula');
+    v.hrecurso = v.hrecurso || gv(row,'hrecurso');
+    v.pres     = v.pres     || gv(row,'pres1');
+    v.calidad  = v.calidad  || gv(row,'calidad');
+    v.obs      = v.obs      || gv(row,'obs');
+    v.docs     = v.docs     || gv(row,'docs');
+    v.video    = v.video    || gv(row,'video');
+    if(v.nombre || v.calidad || v.obs) v.status = 'Realizada';
+  });
+
+  S.sched.sort((a,b)=>a.dateStr.localeCompare(b.dateStr));
   saveLocal();
 }
 
 function renderAll(){
-  renderSched(); updateTable(); updateDash();
+  renderSched(); updateTable(); updateDash(); updateBadges();
+  loadToday();
 }
 
 // ══════════════════════════════════════════════════
@@ -845,53 +922,102 @@ function filterTable(){updateTable();}
 //  DASHBOARD
 // ══════════════════════════════════════════════════
 function updateDash(){
-  const a=S.sched,done=a.filter(v=>v.status==='Realizada').length,
-    pend=a.filter(v=>v.status==='Pendiente').length,
-    rep=a.filter(v=>v.status==='Reprogramada').length,
-    pct=a.length?Math.round(done/a.length*100):0;
-  document.getElementById('s-tot').textContent=a.length;
-  document.getElementById('s-done').textContent=done;
-  document.getElementById('s-dp').textContent=pct+'%';
-  document.getElementById('s-pend').textContent=pend;
-  document.getElementById('s-rep').textContent=rep;
-  document.getElementById('s-pct').textContent=pct+'%';
-  document.getElementById('s-bar').style.width=pct+'%';
+  const a = S.sched;
+  const done = a.filter(v=>v.status==='Realizada').length;
+  const pend = a.filter(v=>v.status==='Pendiente').length;
+  const rep  = a.filter(v=>v.status==='Reprogramada').length;
+  const pct  = a.length ? Math.round(done/a.length*100) : 0;
 
-  const today=new Date().toISOString().split('T')[0];
-  const nxt=a.find(v=>v.dateStr>=today&&v.status==='Pendiente');
-  if(nxt){document.getElementById('s-nxt').textContent=nxt.date.toLocaleDateString('es-CO',{day:'2-digit',month:'short'});document.getElementById('s-ns').textContent=nxt.sede;}
+  document.getElementById('s-tot').textContent  = a.length;
+  document.getElementById('s-done').textContent = done;
+  document.getElementById('s-dp').textContent   = pct+'%';
+  document.getElementById('s-pend').textContent = pend;
+  document.getElementById('s-rep').textContent  = rep;
+  document.getElementById('s-pct').textContent  = pct+'%';
+  document.getElementById('s-bar').style.width  = pct+'%';
 
-  const sh={};SEDES.forEach(s=>sh[s]=0);
-  a.forEach(v=>{if(v.obs||v.calidad) sh[v.sede]=(sh[v.sede]||0)+1;});
-  const mx=Math.max(...Object.values(sh),1);
-  document.getElementById('hchart').innerHTML=Object.entries(sh).sort((a,b)=>b[1]-a[1]).map(([s,n])=>`
-    <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px">
-      <div style="font-size:12px;width:82px;color:var(--text2)">${s}</div>
-      <div style="flex:1;background:var(--border);border-radius:4px;height:7px;overflow:hidden">
-        <div style="height:100%;background:var(--accent);width:${n?Math.round(n/mx*100):0}%;border-radius:4px;transition:width .5s"></div>
+  const today = new Date().toISOString().split('T')[0];
+  const nxt = a.find(v=>v.dateStr>=today && v.status==='Pendiente');
+  if(nxt){
+    document.getElementById('s-nxt').textContent = nxt.date.toLocaleDateString('es-CO',{day:'2-digit',month:'short'});
+    document.getElementById('s-ns').textContent  = nxt.sede;
+  } else {
+    document.getElementById('s-nxt').textContent = '—';
+    document.getElementById('s-ns').textContent  = 'Sin visitas pendientes';
+  }
+
+  // Hallazgos por sede
+  const sh={};
+  SEDES.forEach(s=>sh[s]=0);
+  a.forEach(v=>{
+    const k = SEDES.find(s=>v.sede===s) || v.sede;
+    if(sh[k]!==undefined && (v.obs||v.calidad||v.nombre)) sh[k]++;
+  });
+  const mx = Math.max(...Object.values(sh),1);
+  document.getElementById('hchart').innerHTML = Object.entries(sh)
+    .sort((a,b)=>b[1]-a[1])
+    .map(([s,n])=>`
+    <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px">
+      <div style="font-size:12px;width:88px;color:var(--text2);font-weight:500">${s}</div>
+      <div style="flex:1;background:var(--border);border-radius:4px;height:8px;overflow:hidden">
+        <div style="height:100%;background:var(--accent);width:${n?Math.round(n/mx*100):0}%;border-radius:4px;transition:width .6s"></div>
       </div>
-      <div style="font-size:11px;font-family:monospace;color:var(--text3);width:16px;text-align:right">${n}</div>
+      <div style="font-size:12px;font-family:monospace;color:${n?'var(--text)':'var(--text3)'};width:20px;text-align:right;font-weight:${n?'700':'400'}">${n}</div>
     </div>`).join('');
 
-  const upc=a.filter(v=>v.dateStr>=today).slice(0,5);
-  document.getElementById('upcoming').innerHTML=upc.length?upc.map(v=>`
-    <div style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openM('${v.id}')">
-      <div style="font-family:monospace;font-size:11px;color:var(--text3);width:76px">${v.dateStr}</div>
-      <div style="flex:1"><div style="font-size:13px;font-weight:600">${v.sede}</div><div style="font-size:11px;color:var(--text3)">${v.dayName}</div></div>
-      <span class="badge byc">Pendiente</span>
-    </div>`).join(''):`<div style="color:var(--text3);font-size:13px">Sin próximas visitas</div>`;
+  // Próximas visitas
+  const upc = a.filter(v=>v.dateStr>=today).slice(0,6);
+  document.getElementById('upcoming').innerHTML = upc.length
+    ? upc.map(v=>`
+      <div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openM('${v.id}')">
+        <div style="font-family:monospace;font-size:11px;color:var(--text3);width:78px">${v.dateStr}</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600">${v.sede}</div>
+          <div style="font-size:11px;color:var(--text3)">${v.dayName}${v.nombre?' · '+v.nombre:''}</div>
+        </div>
+        <span class="badge ${v.status==='Realizada'?'bg2c':v.status==='Reprogramada'?'brc':'byc'}">${v.status}</span>
+      </div>`).join('')
+    : `<div style="color:var(--text3);font-size:13px">Sin próximas visitas programadas</div>`;
 
-  const rec=[...a].sort((a,b)=>b.dateStr.localeCompare(a.dateStr)).slice(0,5);
-  document.getElementById('activity').innerHTML=rec.length?rec.map(v=>`
-    <div style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--border)">
-      <div style="width:27px;height:27px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:13px">
-        ${v.status==='Realizada'?'✅':v.status==='Reprogramada'?'🔄':'⏳'}
-      </div>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:500">${v.sede} · ${v.dateStr}</div>
-        <div style="font-size:11px;color:var(--text3)">${v.status}${v.resp?' · '+v.resp:''}${v.nombre?' · '+v.nombre:''}</div>
-      </div>
-    </div>`).join(''):`<div style="color:var(--text3);font-size:13px">Sin actividad</div>`;
+  // Actividad reciente — mostrar registros del Sheet directamente si hay
+  const rec = [...a].sort((a,b)=>b.dateStr.localeCompare(a.dateStr)).slice(0,8);
+  if(rec.length){
+    document.getElementById('activity').innerHTML = rec.map(v=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openM('${v.id}')">
+        <div style="width:30px;height:30px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">
+          ${v.status==='Realizada'?'✅':v.status==='Reprogramada'?'🔄':'⏳'}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            ${v.sede} · ${v.dateStr} · <span style="color:var(--text2);font-weight:400">${v.dayName}</span>
+          </div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            ${v.nombre?'👤 '+v.nombre:''}
+            ${v.calidad?' · 🏆 '+v.calidad:''}
+            ${v.obs?' · '+v.obs.slice(0,50)+(v.obs.length>50?'…':''):''}
+          </div>
+        </div>
+        <span class="badge ${v.status==='Realizada'?'bg2c':v.status==='Reprogramada'?'brc':'byc'}" style="flex-shrink:0">${v.status}</span>
+      </div>`).join('');
+  } else if(S.rows.length){
+    // Fallback: mostrar filas crudas del Sheet si S.sched está vacío
+    document.getElementById('activity').innerHTML = S.rows.slice(0,5).map(r=>{
+      const nombre  = gv(r,'nombre') || '—';
+      const calidad = gv(r,'calidad')|| '';
+      const fecha   = normDate(gv(r,'fecha')||gv(r,'marca')||r[Object.keys(r)[0]])||'';
+      const sede    = gv(r,'sede')||'—';
+      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+        <div style="width:30px;height:30px;border-radius:50%;background:var(--gbg);display:flex;align-items:center;justify-content:center;font-size:14px">✅</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600">${sede} · ${fecha}</div>
+          <div style="font-size:12px;color:var(--text3)">👤 ${nombre}${calidad?' · '+calidad:''}</div>
+        </div>
+        <span class="badge bg2c">Sheets</span>
+      </div>`;
+    }).join('');
+  } else {
+    document.getElementById('activity').innerHTML = `<div style="color:var(--text3);font-size:13px">Sin actividad registrada</div>`;
+  }
 
   updateBadges();
 }
@@ -984,12 +1110,29 @@ function loadToday(){
 
   const st=v?.status||'Pendiente';
   const bc=st==='Realizada'?'bg2c':st==='Reprogramada'?'brc':'byc';
+
+  // Find any rows close to today for debug
+  const today2=today;
+  const closeDates = S.rows.slice(0,20).map(r=>{
+    const dateCols=['fecha_auditoria','fecha','marca_temporal'];
+    for(const c of dateCols){ if(r[c]) return {col:c, raw:r[c], norm:normDate(r[c])}; }
+    return null;
+  }).filter(Boolean).slice(0,5);
+
   document.getElementById('astatus').innerHTML=`
     <div style="display:flex;flex-direction:column;gap:9px">
       <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;color:var(--text2)">Estado</span><span class="badge ${bc}">${st}</span></div>
       <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;color:var(--text2)">Sede</span><strong>${v?.sede||'—'}</strong></div>
-      <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;color:var(--text2)">Datos Sheets</span><span style="color:${row?'var(--green)':'var(--text3)'}">${row?'✅ Cargados':'Sin coincidencia hoy'}</span></div>
-      ${row?`<div style="font-size:11px;color:var(--text3)">Auditado: ${gv(row,'nombre')||'—'} · ${gv(row,'calidad')||''}</div>`:''}
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;color:var(--text2)">Datos Sheets hoy</span><span style="color:${row?'var(--green)':'var(--red)'}">${row?'✅ Cargados':'❌ Sin coincidencia'}</span></div>
+      ${row?`<div style="font-size:11px;color:var(--text3)">Auditado: ${gv(row,'nombre')||'—'}</div>`:''}
+      ${!row&&S.rows.length?`
+        <div style="margin-top:6px;padding:8px;background:var(--rbg);border-radius:6px;border:1px solid rgba(239,68,68,.2)">
+          <div style="font-size:11px;color:var(--red);font-weight:600;margin-bottom:5px">⚠ Buscando fecha: <code>${today2}</code></div>
+          <div style="font-size:11px;color:var(--text3)">Columna fecha activa: <code>${COLS.fecha||'no detectada'}</code></div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">Fechas en Sheet (primeras ${closeDates.length}):</div>
+          ${closeDates.map(d=>`<div style="font-size:10px;font-family:monospace;color:var(--text2);margin-top:2px">col:<b>${d.col}</b> raw:<b>${d.raw}</b> → <b style="color:${d.norm===today2?'var(--green)':'var(--yellow)'}">${d.norm||'?'}</b></div>`).join('')}
+          <button class="btn bw sm" style="margin-top:8px;font-size:11px" onclick="showPg('config')">⚙ Ver diagnóstico completo</button>
+        </div>`:''}
     </div>`;
 
   const sede=v?.sede||document.getElementById('f-sede').value;
@@ -1075,22 +1218,26 @@ function updateAllEvs(){
     `<div class="empty"><div class="ei">📎</div><div class="et">Sin evidencias</div></div>`;
 }
 
-// ══════════════════════════════════════════════════
-//  PREVIEW
-// ══════════════════════════════════════════════════
 function showPreview(j){
   if(!j?.rows?.length) return;
+
+  // Show debug card
+  document.getElementById('debug-card').style.display='block';
+  updateDebugPanel();
+
+  // Preview card
   const card=document.getElementById('prev-card');
   card.style.display='block';
   const hdrs=j.headers||Object.keys(j.rows[0]);
   const sample=j.rows.slice(0,4);
   let h=`<div style="font-size:12px;color:var(--text3);margin-bottom:9px">
-    Mostrando ${sample.length} de ${j.total} filas · 
-    Columna fecha detectada: <strong style="color:var(--accent2)">${COLS.fecha||'?'}</strong> · 
-    Nombre: <strong style="color:var(--accent2)">${COLS.nombre||'?'}</strong>
+    <strong style="color:var(--green)">✅ ${j.total} filas cargadas</strong> · 
+    Columna fecha: <strong style="color:var(--accent2)">${COLS.fecha||'⚠ no detectada'}</strong> · 
+    Nombre: <strong style="color:var(--accent2)">${COLS.nombre||'⚠ no detectada'}</strong> ·
+    Calidad: <strong style="color:var(--accent2)">${COLS.calidad||'⚠ no detectada'}</strong>
   </div>`;
-  h+=`<div class="tw"><table><thead><tr>${hdrs.slice(0,8).map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
-  sample.forEach(r=>{h+=`<tr>${hdrs.slice(0,8).map(k=>`<td style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r[k]||''}</td>`).join('')}</tr>`;});
+  h+=`<div class="tw"><table><thead><tr>${hdrs.slice(0,8).map(c=>`<th title="${c}">${c.slice(0,18)}${c.length>18?'…':''}</th>`).join('')}</tr></thead><tbody>`;
+  sample.forEach(r=>{h+=`<tr>${hdrs.slice(0,8).map(k=>`<td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r[k]||''}">${r[k]||''}</td>`).join('')}</tr>`;});
   h+=`</tbody></table></div>`;
   document.getElementById('prev-data').innerHTML=h;
 }
