@@ -654,29 +654,25 @@ function updateConnStatus(ok, msg){
 // ══════════════════════════════════════════════════
 function detectCols(headers){
   if(!headers.length) return;
-  console.log('=== COLUMNAS REALES DEL SHEET ===');
-  console.log(headers);
-  S._headers = headers; // guardar para debug
-
-  const f = (terms) => headers.find(h => terms.some(t => h.includes(t))) || '';
-
-  COLS.fecha    = f(['fecha_auditoria','fecha_audit']) || f(['fecha']) || f(['marca_temporal']);
-  COLS.marca    = f(['marca_temporal']) || f(['timestamp','marca']);
-  COLS.nombre   = f(['nombre_a_quien','nombre_quien']) || f(['nombre_auditado','nombre']);
-  COLS.cedula   = f(['cedula_a_quien','cedula_quien']) || f(['cedula','documento','cc']);
-  COLS.hrecurso = f(['hora_de_llegada_a_la_sede','hora_llegada_sede','hora_llegada_recurso','llegada_recurso']) || f(['hora_llegada','hora_de_llegada']);
-  COLS.pres1    = f(['presentacion_del_personal','presentacion']) || f(['presentacion']);
-  COLS.calidad  = f(['calidad_de_atencion','calidad_atencion','calidad']) || f(['atencion']);
-  COLS.obs      = f(['obsevaciones_de_la_atencion','observaciones_de_la_atencion','obsevaciones_atencion','observaciones_atencion']) || f(['obsevacion','observacion','obs']);
-  COLS.sede     = f(['sede']) || f(['sucursal','ubicacion','lugar']);
-  COLS.docs     = f(['docuemento_pendiente','documento_pendiente','documentos_pendiente','docuemento']) || f(['pendiente','radicar']);
-  COLS.video    = f(['video_apertura','video_buzon','video']) || f(['apertura_buzon','buzon']);
-
-  console.log('=== MAPEO DETECTADO ===');
-  console.log(JSON.stringify(COLS, null, 2));
+  console.log("=== COLUMNAS REALES DEL SHEET ===", headers);
+  S._headers = headers;
+  const fExact = (...terms) => headers.find(h => terms.includes(h)) || "";
+  const fPart  = (...terms) => headers.find(h => terms.some(t => h.includes(t))) || "";
+  COLS.fecha    = fExact("fecha_auditoria") || fPart("fecha_auditoria","fecha_audit") || fPart("fecha");
+  COLS.marca    = fExact("marca_temporal")  || fPart("marca_temporal","timestamp","marca");
+  if(!COLS.fecha) COLS.fecha = COLS.marca;
+  COLS.nombre   = fExact("nombre_a_quien_se_audita") || fPart("nombre_a_quien","nombre_auditado","nombre_quien") || fPart("nombre");
+  COLS.cedula   = fExact("cedula_a_quien_se_audita") || fPart("cedula_a_quien","cedula_auditado") || fPart("cedula","documento");
+  COLS.hrecurso = fExact("hora_de_llegada_a_la_sede_del_recurso") || fPart("hora_de_llegada_a_la_sede","hora_llegada_sede") || fPart("hora_de_llegada","hora_llegada");
+  COLS.pres1    = fPart("presentacion_del_personal","presentacion");
+  COLS.calidad  = fExact("calidad_de_atencion_al_usuario") || fPart("calidad_de_atencion","calidad_atencion") || fPart("calidad");
+  COLS.obs      = fPart("obsevaciones_de_la_atencion","observaciones_de_la_atencion","obsevacion","observacion");
+  COLS.sede     = fExact("sede") || fPart("sede");
+  COLS.docs     = headers.find(h=>h.startsWith("docuemento")||h.startsWith("documento_pendiente")) || fPart("docuemento","pendiente_por_radicar");
+  COLS.video    = fExact("video_apertura_de_buzones") || fPart("video_apertura","video_buzon") || fPart("video");
+  console.log("=== MAPEO DETECTADO ===", JSON.stringify(COLS));
   updateDebugPanel();
 }
-
 function updateDebugPanel(){
   const el = document.getElementById('debug-panel');
   if(!el) return;
@@ -710,10 +706,17 @@ function updateDebugPanel(){
 function gv(row, key){
   const col = COLS[key];
   if(!row) return '';
-  if(col && row[col] !== undefined) return row[col] || '';
-  // Fallback: buscar cualquier clave que contenga el key
+  const clean = v => {
+    if(!v) return '';
+    const s = String(v).trim();
+    // Filtrar valores de fecha 1899 (son horas mal convertidas por Sheets)
+    if(s.startsWith('1899') || s.startsWith('1900-01-00') || s === '1899-12-30') return '';
+    return s;
+  };
+  if(col && row[col] !== undefined) return clean(row[col]);
+  // Fallback: buscar clave que contenga el key
   const fallback = Object.keys(row).find(k => k.includes(key));
-  return fallback ? (row[fallback] || '') : '';
+  return fallback ? clean(row[fallback]) : '';
 }
 
 function normDate(v){
@@ -753,43 +756,94 @@ function findRow(dateStr){
 }
 
 function mergeIntoSched(){
-  // 1. Si hay filas del Sheet, crear visitas en S.sched para las fechas que no existan aún
+  // Helper: detectar si un string parece fecha 1899 (valor de hora erróneo)
+  const isBadDate = v => !v || v.startsWith('1899') || v.startsWith('1900') || v === '0:00' || v === '00:00';
+
+  // Helper: obtener fecha válida de una fila — intenta múltiples columnas
+  function getValidDate(row){
+    // Prioridad: columna fecha_auditoria, luego marca_temporal
+    const candidates = [
+      COLS.fecha, COLS.marca,
+      'fecha_auditoria','fecha_auditoria_','fecha',
+      'marca_temporal','timestamp'
+    ];
+    for(const col of candidates){
+      if(!col) continue;
+      const raw = row[col];
+      if(!raw || isBadDate(raw)) continue;
+      const nd = normDate(raw);
+      if(nd && !nd.startsWith('1899') && !nd.startsWith('1900')) return nd;
+    }
+    // Último recurso: buscar en todas las columnas un valor que parezca fecha válida
+    for(const [k,v] of Object.entries(row)){
+      if(isBadDate(v)) continue;
+      const nd = normDate(v);
+      if(nd && nd >= '2020-01-01' && nd <= '2030-12-31') return nd;
+    }
+    return null;
+  }
+
+  // Helper: obtener sede válida de una fila
+  function getValidSede(row){
+    const raw = gv(row,'sede');
+    if(raw && !isBadDate(raw) && !/^\d{4}-\d{2}-\d{2}$/.test(raw)){
+      // Intentar mapear a sede conocida
+      const match = SEDES.find(s => raw.toLowerCase().includes(s.toLowerCase().split(' ')[0]));
+      if(match) return match;
+      if(raw.trim()) return raw.trim();
+    }
+    // Buscar en otras columnas
+    for(const [k,v] of Object.entries(row)){
+      if(!v || isBadDate(v)) continue;
+      const match = SEDES.find(s => v.toLowerCase().includes(s.toLowerCase().split(' ')[0]));
+      if(match) return match;
+    }
+    return ''; // no se encontró sede — se asignará rotando
+  }
+
+  // 1. Crear/enriquecer visitas desde filas del Sheet
+  let sedeIdx = S.sched.length; // continuar rotación desde donde está
   S.rows.forEach(row=>{
-    const dateStr = normDate(gv(row,'fecha') || gv(row,'marca') || row[Object.keys(row)[0]]);
+    const dateStr = getValidDate(row);
     if(!dateStr) return;
-    const sedeRaw = gv(row,'sede') || '';
-    const sede    = SEDES.find(s=>sedeRaw.toLowerCase().includes(s.toLowerCase())) || sedeRaw || 'Calle 26';
+
+    let sedeRaw = getValidSede(row);
+    const sede  = sedeRaw || SEDES[sedeIdx++ % 4];
 
     let v = S.sched.find(x=>x.dateStr===dateStr);
     if(!v){
       v = mkV(new Date(dateStr+'T12:00:00'), sede);
       S.sched.push(v);
+    } else if(!v.sede || v.sede === 'Calle 26' && sedeRaw){
+      v.sede = sede;
     }
-    // Enriquecer con datos del Sheet
-    v.nombre   = gv(row,'nombre')   || v.nombre;
-    v.cedula   = gv(row,'cedula')   || v.cedula;
-    v.hrecurso = gv(row,'hrecurso') || v.hrecurso;
-    v.pres     = gv(row,'pres1')    || v.pres;
-    v.calidad  = gv(row,'calidad')  || v.calidad;
-    v.obs      = gv(row,'obs')      || v.obs;
-    v.docs     = gv(row,'docs')     || v.docs;
-    v.video    = gv(row,'video')    || v.video;
+
+    // Enriquecer campos — nunca sobrescribir con valores 1899
+    const safe = (newVal, old) => (newVal && !isBadDate(newVal)) ? newVal : old;
+    v.nombre   = safe(gv(row,'nombre'),   v.nombre);
+    v.cedula   = safe(gv(row,'cedula'),   v.cedula);
+    v.hrecurso = safe(gv(row,'hrecurso'), v.hrecurso);
+    v.pres     = safe(gv(row,'pres1'),    v.pres);
+    v.calidad  = safe(gv(row,'calidad'),  v.calidad);
+    v.obs      = safe(gv(row,'obs'),      v.obs);
+    v.docs     = safe(gv(row,'docs'),     v.docs);
+    v.video    = safe(gv(row,'video'),    v.video);
     if(v.nombre || v.calidad || v.obs) v.status = 'Realizada';
-    if(sedeRaw && !v.sede) v.sede = sede;
   });
 
-  // 2. Para las visitas ya existentes del cronograma, cruzar con Sheet
+  // 2. Cruzar visitas del cronograma manual con Sheet
   S.sched.forEach(v=>{
     const row = findRow(v.dateStr);
     if(!row) return;
-    v.nombre   = v.nombre   || gv(row,'nombre');
-    v.cedula   = v.cedula   || gv(row,'cedula');
-    v.hrecurso = v.hrecurso || gv(row,'hrecurso');
-    v.pres     = v.pres     || gv(row,'pres1');
-    v.calidad  = v.calidad  || gv(row,'calidad');
-    v.obs      = v.obs      || gv(row,'obs');
-    v.docs     = v.docs     || gv(row,'docs');
-    v.video    = v.video    || gv(row,'video');
+    const safe = (newVal, old) => (newVal && !isBadDate(newVal)) ? newVal : old;
+    v.nombre   = safe(gv(row,'nombre'),   v.nombre);
+    v.cedula   = safe(gv(row,'cedula'),   v.cedula);
+    v.hrecurso = safe(gv(row,'hrecurso'), v.hrecurso);
+    v.pres     = safe(gv(row,'pres1'),    v.pres);
+    v.calidad  = safe(gv(row,'calidad'),  v.calidad);
+    v.obs      = safe(gv(row,'obs'),      v.obs);
+    v.docs     = safe(gv(row,'docs'),     v.docs);
+    v.video    = safe(gv(row,'video'),    v.video);
     if(v.nombre || v.calidad || v.obs) v.status = 'Realizada';
   });
 
